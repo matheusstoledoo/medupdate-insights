@@ -14,7 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      artigos: {
+        Row: {
+          alt_a: string | null
+          alt_b: string | null
+          alt_c: string | null
+          alt_d: string | null
+          analise_metodologica: string | null
+          ano: number | null
+          citacoes: number | null
+          contexto_vs_anterior: string | null
+          created_at: string | null
+          data_publicacao: string | null
+          especialidade: string | null
+          feedback_quiz: string | null
+          grade: string | null
+          grade_justificativa: string | null
+          id: string
+          journal: string | null
+          link_original: string | null
+          pmid: string | null
+          questao: string | null
+          resposta_correta: string | null
+          resumo_pt: string | null
+          rob_resultado: string | null
+          score_relevancia: number | null
+          tipo_estudo: string | null
+          titulo: string
+        }
+        Insert: {
+          alt_a?: string | null
+          alt_b?: string | null
+          alt_c?: string | null
+          alt_d?: string | null
+          analise_metodologica?: string | null
+          ano?: number | null
+          citacoes?: number | null
+          contexto_vs_anterior?: string | null
+          created_at?: string | null
+          data_publicacao?: string | null
+          especialidade?: string | null
+          feedback_quiz?: string | null
+          grade?: string | null
+          grade_justificativa?: string | null
+          id?: string
+          journal?: string | null
+          link_original?: string | null
+          pmid?: string | null
+          questao?: string | null
+          resposta_correta?: string | null
+          resumo_pt?: string | null
+          rob_resultado?: string | null
+          score_relevancia?: number | null
+          tipo_estudo?: string | null
+          titulo: string
+        }
+        Update: {
+          alt_a?: string | null
+          alt_b?: string | null
+          alt_c?: string | null
+          alt_d?: string | null
+          analise_metodologica?: string | null
+          ano?: number | null
+          citacoes?: number | null
+          contexto_vs_anterior?: string | null
+          created_at?: string | null
+          data_publicacao?: string | null
+          especialidade?: string | null
+          feedback_quiz?: string | null
+          grade?: string | null
+          grade_justificativa?: string | null
+          id?: string
+          journal?: string | null
+          link_original?: string | null
+          pmid?: string | null
+          questao?: string | null
+          resposta_correta?: string | null
+          resumo_pt?: string | null
+          rob_resultado?: string | null
+          score_relevancia?: number | null
+          tipo_estudo?: string | null
+          titulo?: string
+        }
+        Relationships: []
+      }
+      progresso: {
+        Row: {
+          acertou: boolean | null
+          artigo_id: string
+          created_at: string | null
+          data_resposta: string | null
+          id: string
+          proxima_revisao: string | null
+          respondeu: boolean | null
+          usuario_id: string
+          vezes_revisado: number | null
+        }
+        Insert: {
+          acertou?: boolean | null
+          artigo_id: string
+          created_at?: string | null
+          data_resposta?: string | null
+          id?: string
+          proxima_revisao?: string | null
+          respondeu?: boolean | null
+          usuario_id: string
+          vezes_revisado?: number | null
+        }
+        Update: {
+          acertou?: boolean | null
+          artigo_id?: string
+          created_at?: string | null
+          data_resposta?: string | null
+          id?: string
+          proxima_revisao?: string | null
+          respondeu?: boolean | null
+          usuario_id?: string
+          vezes_revisado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_artigo_id_fkey"
+            columns: ["artigo_id"]
+            isOneToOne: false
+            referencedRelation: "artigos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          especialidade: string | null
+          id: string
+          nome: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          especialidade?: string | null
+          id: string
+          nome?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
