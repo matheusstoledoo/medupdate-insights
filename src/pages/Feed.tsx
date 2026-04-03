@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { abrirLinkExterno } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Search, ExternalLink } from "lucide-react";
