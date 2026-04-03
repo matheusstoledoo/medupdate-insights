@@ -579,7 +579,7 @@ const BuscaAtiva = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 font-mono text-[0.72rem] text-muted-foreground">
                           {r.artigoLocal?.grade && <GradeBadge grade={r.artigoLocal.grade} />}
-                          <span className="font-mono uppercase tracking-wider">{r.journal}</span>
+                          <span className="uppercase tracking-widest">{r.journal}</span>
                           {r.ano && (
                             <>
                               <span>·</span>
