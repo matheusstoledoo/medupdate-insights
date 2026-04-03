@@ -113,6 +113,33 @@ export type Database = {
         }
         Relationships: []
       }
+      buscas: {
+        Row: {
+          created_at: string
+          id: string
+          query_cochrane: string | null
+          query_pubmed: string | null
+          texto_original: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query_cochrane?: string | null
+          query_pubmed?: string | null
+          texto_original: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query_cochrane?: string | null
+          query_pubmed?: string | null
+          texto_original?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       progresso: {
         Row: {
           acertou: boolean | null
