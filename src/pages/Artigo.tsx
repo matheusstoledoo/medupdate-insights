@@ -174,15 +174,7 @@ const Artigo = () => {
             <>
               <span>·</span>
               <button
-                onClick={() => {
-                  const a = document.createElement("a");
-                  a.href = artigo.link_original!;
-                  a.target = "_blank";
-                  a.rel = "noopener noreferrer";
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                }}
+                onClick={() => abrirLinkExterno(artigo.link_original!)}
                 className="inline-flex items-center gap-1 text-secondary hover:underline"
               >
                 Ver artigo original <ExternalLink className="h-3 w-3" />

@@ -281,15 +281,7 @@ const BuscaAtiva = () => {
     ? `https://www.cochranelibrary.com/search?searchBy=6&searchText=${encodeURIComponent(normalizacao.query_cochrane)}&isWordVariations=&resultPerPage=10`
     : "";
 
-  const abrirLink = (url: string) => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
+  const abrirLink = (url: string) => abrirLinkExterno(url);
 
   return (
     <div className="space-y-6">

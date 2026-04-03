@@ -38,15 +38,7 @@ const getDataCorte = (filtro: Filtro): string | null => {
   }
 };
 
-const abrirArtigo = (url: string) => {
-  const a = document.createElement("a");
-  a.href = url;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-};
+const abrirArtigo = (url: string) => abrirLinkExterno(url);
 
 const formatarBadgeData = (dataStr: string | null) => {
   if (!dataStr) return null;
