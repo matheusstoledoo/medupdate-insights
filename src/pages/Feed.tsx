@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Search, ExternalLink } from "lucide-react";
@@ -7,9 +6,9 @@ import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
 import { useStreak } from "@/hooks/use-streak";
 
-type Periodo = "hoje" | "semana" | "mes" | "ano" | "todos";
+type Filtro = "hoje" | "semana" | "mes" | "ano" | "todos";
 
-const periodoLabels: Record<Periodo, string> = {
+const filtroLabels: Record<Filtro, string> = {
   hoje: "Hoje",
   semana: "Esta semana",
   mes: "Este mês",
@@ -17,117 +16,113 @@ const periodoLabels: Record<Periodo, string> = {
   todos: "Todos",
 };
 
-function getDataInicio(periodo: Periodo): string | null {
-  const now = new Date();
-  switch (periodo) {
+const getDataCorte = (filtro: Filtro): string | null => {
+  const hoje = new Date();
+  switch (filtro) {
     case "hoje":
-      return now.toISOString().split("T")[0];
+      return hoje.toISOString().split("T")[0];
     case "semana": {
-      const d = new Date(now);
-      d.setDate(d.getDate() - 7);
+      const d = new Date(hoje);
+      d.setDate(hoje.getDate() - 7);
       return d.toISOString().split("T")[0];
     }
-    case "mes": {
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    }
+    case "mes":
+      return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split("T")[0];
     case "ano":
-      return `${now.getFullYear()}-01-01`;
-    case "todos":
+      return `${hoje.getFullYear()}-01-01`;
+    default:
       return null;
   }
-}
+};
 
-function getDateBadge(dataPub: string | null): { label: string; className: string } | null {
-  if (!dataPub) return null;
-  const pub = new Date(dataPub + "T00:00:00");
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diff = Math.floor((today.getTime() - pub.getTime()) / (1000 * 60 * 60 * 24));
+const abrirArtigo = (url: string) => {
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
 
-  if (diff === 0) {
-    return { label: "Hoje", className: "bg-primary/15 text-primary border-primary/30" };
-  }
-  if (diff <= 7) {
-    return { label: `${diff}d atrás`, className: "bg-blue-500/15 text-blue-400 border-blue-500/30" };
-  }
+const formatarBadgeData = (dataStr: string | null) => {
+  if (!dataStr) return null;
+  const data = new Date(dataStr + "T00:00:00");
+  const hoje = new Date();
+  const todayStart = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  const diff = Math.floor((todayStart.getTime() - data.getTime()) / 86400000);
+
+  if (diff === 0) return { label: "Hoje", className: "bg-primary/15 text-primary border-primary/30" };
+  if (diff <= 7) return { label: `${diff}d atrás`, className: "bg-blue-500/15 text-blue-400 border-blue-500/30" };
   if (diff <= 30) {
-    const dd = String(pub.getDate()).padStart(2, "0");
-    const mm = String(pub.getMonth() + 1).padStart(2, "0");
-    return { label: `${dd}/${mm}`, className: "bg-muted text-muted-foreground border-border" };
+    return { label: data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), className: "bg-muted text-muted-foreground border-border" };
   }
-  const mm = String(pub.getMonth() + 1).padStart(2, "0");
-  const yyyy = pub.getFullYear();
-  return { label: `${mm}/${yyyy}`, className: "bg-muted text-muted-foreground border-border" };
-}
+  return { label: data.toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" }), className: "bg-muted text-muted-foreground border-border" };
+};
 
 const Feed = () => {
   const { streakAtual } = useStreak();
   const [search, setSearch] = useState("");
-  const [periodo, setPeriodo] = useState<Periodo>("semana");
+  const [filtro, setFiltro] = useState<Filtro>("semana");
+  const [artigos, setArtigos] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [fallbackMsg, setFallbackMsg] = useState<string | null>(null);
 
-  const { data: artigos, isLoading } = useQuery({
-    queryKey: ["artigos", search, periodo],
-    queryFn: async () => {
-      let currentPeriodo = periodo;
-      let dataInicio = getDataInicio(currentPeriodo);
+  useEffect(() => {
+    const buscarArtigos = async () => {
+      setIsLoading(true);
+      setFallbackMsg(null);
 
-      let query = supabase
-        .from("artigos")
-        .select("*")
-        .order("data_publicacao", { ascending: false })
-        .order("score_relevancia", { ascending: false })
-        .limit(20);
-
-      if (search.trim()) {
-        query = query.ilike("titulo", `%${search.trim()}%`);
-      }
-
-      if (dataInicio) {
-        query = query.gte("data_publicacao", dataInicio);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      // Auto-fallback: if "semana" returns empty, try "mes"
-      if (currentPeriodo === "semana" && (!data || data.length === 0) && !search.trim()) {
-        const mesInicio = getDataInicio("mes");
-        let fallbackQuery = supabase
+      const buildQuery = (dataCorte: string | null) => {
+        let q = supabase
           .from("artigos")
           .select("*")
           .order("data_publicacao", { ascending: false })
           .order("score_relevancia", { ascending: false })
           .limit(20);
-
-        if (mesInicio) {
-          fallbackQuery = fallbackQuery.gte("data_publicacao", mesInicio);
+        if (search.trim()) {
+          q = q.ilike("titulo", `%${search.trim()}%`);
         }
+        if (dataCorte) {
+          q = q.gte("data_publicacao", dataCorte);
+        }
+        return q;
+      };
 
-        const { data: mesData, error: mesError } = await fallbackQuery;
-        if (mesError) throw mesError;
+      const dataCorte = getDataCorte(filtro);
+      const { data, error } = await buildQuery(dataCorte);
+
+      if (error) {
+        console.error("Erro ao buscar artigos:", error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Auto-fallback from semana → mes → todos
+      if (filtro === "semana" && (!data || data.length === 0) && !search.trim()) {
+        const mesCorte = getDataCorte("mes");
+        const { data: mesData } = await buildQuery(mesCorte);
 
         if (mesData && mesData.length > 0) {
-          setFallbackMsg("Nenhum artigo novo esta semana — mostrando o mês atual.");
-          return mesData;
+          setFallbackMsg("Nenhum artigo novo esta semana — exibindo o mês atual.");
+          setArtigos(mesData);
+          setIsLoading(false);
+          return;
         }
 
-        // If month also empty, show all
-        const { data: allData, error: allError } = await supabase
-          .from("artigos")
-          .select("*")
-          .order("data_publicacao", { ascending: false })
-          .order("score_relevancia", { ascending: false })
-          .limit(20);
-        if (allError) throw allError;
-        setFallbackMsg("Nenhum artigo novo este mês — mostrando todos.");
-        return allData;
+        const { data: allData } = await buildQuery(null);
+        setFallbackMsg("Nenhum artigo novo este mês — exibindo todos.");
+        setArtigos(allData || []);
+        setIsLoading(false);
+        return;
       }
 
-      setFallbackMsg(null);
-      return data;
-    },
-  });
+      setArtigos(data || []);
+      setIsLoading(false);
+    };
+
+    buscarArtigos();
+  }, [filtro, search]);
 
   const now = new Date();
   const weekLabel = `Semana de ${now.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}`;
@@ -141,18 +136,18 @@ const Feed = () => {
         </h1>
 
         {/* Period filters */}
-        <div className="flex gap-2 mt-4 mb-2 overflow-x-auto pb-2 scrollbar-hide">
-          {(Object.keys(periodoLabels) as Periodo[]).map((p) => (
+        <div className="flex gap-2 mt-4 mb-2 overflow-x-auto pb-2">
+          {(Object.keys(filtroLabels) as Filtro[]).map((f) => (
             <button
-              key={p}
-              onClick={() => { setPeriodo(p); setFallbackMsg(null); }}
+              key={f}
+              onClick={() => setFiltro(f)}
               className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium transition-colors border ${
-                periodo === p
+                filtro === f
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
               }`}
             >
-              {periodoLabels[p]}
+              {filtroLabels[f]}
             </button>
           ))}
         </div>
@@ -180,8 +175,8 @@ const Feed = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {artigos?.map((artigo) => {
-              const badge = getDateBadge(artigo.data_publicacao);
+            {artigos.map((artigo) => {
+              const badge = formatarBadgeData(artigo.data_publicacao);
               return (
                 <article
                   key={artigo.id}
@@ -215,15 +210,13 @@ const Feed = () => {
                       {artigo.link_original && (
                         <>
                           <span>·</span>
-                          <a
-                            href={artigo.link_original}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => abrirArtigo(artigo.link_original!)}
                             className="inline-flex items-center gap-1 text-secondary hover:underline"
                           >
                             <ExternalLink className="h-3 w-3" />
                             PubMed
-                          </a>
+                          </button>
                         </>
                       )}
                     </div>
@@ -238,7 +231,7 @@ const Feed = () => {
               );
             })}
 
-            {artigos?.length === 0 && (
+            {artigos.length === 0 && (
               <p className="text-center text-muted-foreground py-12">
                 Nenhum artigo encontrado.
               </p>
