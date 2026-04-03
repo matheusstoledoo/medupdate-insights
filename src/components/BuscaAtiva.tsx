@@ -534,20 +534,21 @@ const BuscaAtiva = () => {
                   {resultados.map((r) => (
                     <article
                       key={r.pmid}
-                      className={`rounded-lg border bg-card p-4 transition-colors ${
-                        r.analisando ? "border-secondary/40 bg-secondary/5" : "border-border hover:border-secondary/30"
+                      className={`rounded-lg border bg-card p-4 transition-all ${
+                        r.analisando ? "border-primary/40 bg-accent-light" : "border-[hsl(var(--border))] hover:border-[hsl(40_6%_10%/0.18)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)]"
                       }`}
+                      style={{ boxShadow: r.analisando ? undefined : '0 1px 3px rgba(0,0,0,0.06)' }}
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="text-sm font-semibold text-foreground leading-snug flex-1">
+                        <h3 className="font-serif text-[0.95rem] font-semibold text-foreground leading-snug flex-1" style={{ letterSpacing: '-0.01em' }}>
                           {r.titulo}
                         </h3>
                         {r.artigoLocal ? (
-                          <span className="shrink-0 rounded-full bg-primary/15 text-primary border border-primary/30 px-2.5 py-0.5 text-[10px] font-medium">
+                          <span className="shrink-0 rounded px-2.5 py-0.5 text-[10px] font-medium bg-grade-a-bg text-grade-a-text">
                             Análise disponível
                           </span>
                         ) : (
-                          <span className="shrink-0 rounded-full bg-secondary/15 text-secondary border border-secondary/30 px-2.5 py-0.5 text-[10px] font-medium">
+                          <span className="shrink-0 rounded px-2.5 py-0.5 text-[10px] font-medium bg-accent-light text-primary">
                             Novo
                           </span>
                         )}
