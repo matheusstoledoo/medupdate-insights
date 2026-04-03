@@ -135,8 +135,16 @@ const Feed = () => {
           ))}
         </div>
 
-        {fallbackMsg && (
-          <p className="text-sm text-muted-foreground mb-4 italic">{fallbackMsg}</p>
+        {mensagemVazio && (
+          <div className="text-center py-2 mb-4">
+            <p className="text-sm text-muted-foreground italic">{mensagemVazio}</p>
+            <button
+              onClick={() => setFiltro("todos")}
+              className="text-sm text-primary hover:underline mt-1"
+            >
+              Ver todos os artigos →
+            </button>
+          </div>
         )}
 
         <div className="relative mt-2 mb-8">
