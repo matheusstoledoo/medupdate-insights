@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Search, ExternalLink } from "lucide-react";
 import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
+import { useStreak } from "@/hooks/use-streak";
 
 const Feed = () => {
   const [search, setSearch] = useState("");
