@@ -611,7 +611,7 @@ const BuscaAtiva = () => {
                               {analisesRealizadas < 3 ? (
                                 <button
                                   onClick={() => analisarArtigo(r.pmid)}
-                                  className="inline-flex items-center gap-1.5 rounded-md bg-secondary/10 px-3 py-1.5 text-xs font-medium text-secondary hover:bg-secondary/20 transition-colors border border-secondary/20"
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-accent-light px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-primary/20"
                                 >
                                   <Sparkles className="h-3 w-3" />
                                   Analisar este artigo
