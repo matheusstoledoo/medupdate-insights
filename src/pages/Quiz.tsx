@@ -18,6 +18,7 @@ const Quiz = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [streakAtual, setStreakAtual] = useState<number | null>(null);
 
   const { data: artigo, isLoading } = useQuery({
     queryKey: ["artigo", id],
