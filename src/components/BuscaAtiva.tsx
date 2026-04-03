@@ -637,7 +637,7 @@ const BuscaAtiva = () => {
 
                   {/* Analysis limit warning */}
                   {analisesRealizadas >= 3 && (
-                    <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-3 text-xs text-secondary flex items-center gap-2">
+                    <div className="rounded-lg border border-primary/20 bg-accent-light p-3 text-xs text-primary flex items-center gap-2">
                       <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                       Limite de 3 análises por busca atingido. Inicie uma nova busca para analisar mais artigos.
                     </div>
