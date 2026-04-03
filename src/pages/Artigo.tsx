@@ -20,9 +20,9 @@ import {
 
 const RobIcon = ({ resultado }: { resultado: string }) => {
   const lower = resultado?.toLowerCase() || "";
-  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-primary" />;
+  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-grade-a-text" />;
   if (lower.includes("preocupações") || lower.includes("algumas")) return <AlertTriangle className="h-4 w-4 text-grade-b-text" />;
-  return <XCircle className="h-4 w-4 text-destructive" />;
+  return <XCircle className="h-4 w-4 text-grade-d-text" />;
 };
 
 type DomainStatus = "baixo" | "preocupações" | "alto" | "nao_avaliado";
@@ -37,11 +37,11 @@ interface RobDomain {
 const getDomainIcon = (status: DomainStatus) => {
   switch (status) {
     case "baixo":
-      return <CheckCircle className="h-4 w-4 shrink-0 text-primary" />;
+      return <CheckCircle className="h-4 w-4 shrink-0 text-grade-a-text" />;
     case "preocupações":
       return <AlertTriangle className="h-4 w-4 shrink-0 text-grade-b-text" />;
     case "alto":
-      return <XCircle className="h-4 w-4 shrink-0 text-destructive" />;
+      return <XCircle className="h-4 w-4 shrink-0 text-grade-d-text" />;
     default:
       return <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground" />;
   }
@@ -118,8 +118,8 @@ const Artigo = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-8">
-          <div className="h-64 rounded-lg bg-card animate-pulse" />
+        <main className="container max-w-[720px] py-8">
+          <div className="h-64 rounded-lg bg-surface-secondary animate-pulse" />
         </main>
       </div>
     );
@@ -129,7 +129,7 @@ const Artigo = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-8 text-center text-muted-foreground">
+        <main className="container max-w-[720px] py-8 text-center text-muted-foreground">
           Artigo não encontrado.
         </main>
       </div>
@@ -147,7 +147,7 @@ const Artigo = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container max-w-3xl py-8">
+      <main className="container max-w-[720px] py-8">
         <Link
           to="/feed"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -159,12 +159,12 @@ const Artigo = () => {
           <GradeBadge grade={artigo.grade || ""} size="lg" />
         </div>
 
-        <h1 className="text-2xl font-bold text-foreground leading-tight mb-4">
+        <h1 className="font-serif text-[1.55rem] font-bold text-foreground leading-tight mb-4" style={{ letterSpacing: '-0.025em' }}>
           {artigo.titulo}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-8">
-          <span className="font-mono text-xs uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[0.75rem] text-muted-foreground mb-8">
+          <span className="uppercase tracking-wider">
             {artigo.journal}
           </span>
           <span>·</span>
@@ -176,35 +176,38 @@ const Artigo = () => {
               <span>·</span>
               <button
                 onClick={() => abrirLinkExterno(artigo.link_original!)}
-                className="inline-flex items-center gap-1 text-secondary hover:underline"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
               >
-                Ver artigo original <ExternalLink className="h-3 w-3" />
+                Ver artigo ↗
               </button>
             </>
           )}
         </div>
 
+        {/* Divider */}
+        <div className="h-px bg-[hsl(var(--divider))] mb-6" />
+
         {/* Resumo */}
         <section className="mb-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          <h2 className="text-[0.68rem] font-medium uppercase tracking-[0.1em] text-muted-foreground mb-3">
             Resumo
           </h2>
-          <p className="text-sm leading-relaxed text-foreground/90">
+          <p className="text-[0.97rem] leading-[1.78] text-foreground">
             {artigo.resumo_pt}
           </p>
         </section>
 
         {/* Acordeões */}
         <Accordion type="multiple" className="mb-8">
-          <AccordionItem value="metodologia" className="border-border">
-            <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
+          <AccordionItem value="metodologia" className="border-[hsl(var(--border))]">
+            <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
               Análise metodológica
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
               {/* Badge de fonte da análise */}
               <div className="mb-4">
                 {temTextoCompleto ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  <span className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium bg-grade-a-bg text-grade-a-text">
                     <FileText className="h-3 w-3" />
                     Análise do texto completo
                   </span>
@@ -212,7 +215,7 @@ const Artigo = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground cursor-help">
+                        <span className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium bg-surface-tertiary text-muted-foreground cursor-help">
                           <FileSearch className="h-3 w-3" />
                           Análise do abstract
                         </span>
@@ -225,13 +228,13 @@ const Artigo = () => {
                 )}
               </div>
 
-              <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+              <p className="text-[0.88rem] text-foreground/80 leading-[1.72] mb-4">
                 {artigo.analise_metodologica}
               </p>
 
               {/* Badge principal de RoB */}
               {artigo.rob_resultado && (
-                <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 mb-4">
+                <div className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 mb-4">
                   <RobIcon resultado={artigo.rob_resultado} />
                   <span className="text-sm font-medium text-foreground">
                     Risco de viés: {artigo.rob_resultado}
@@ -242,7 +245,7 @@ const Artigo = () => {
               {/* Vieses detalhados por domínio RoB 2 */}
               {dominiosRob && (
                 <Accordion type="single" collapsible className="mb-3">
-                  <AccordionItem value="vieses" className="border-border/50">
+                  <AccordionItem value="vieses" className="border-[hsl(var(--border))]">
                     <AccordionTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:no-underline py-2">
                       Ver análise de vieses por domínio
                     </AccordionTrigger>
@@ -270,7 +273,7 @@ const Artigo = () => {
               {/* Limitações dos autores */}
               {limitacoesAutores && (
                 <Accordion type="single" collapsible className="mb-3">
-                  <AccordionItem value="limitacoes" className="border-border/50">
+                  <AccordionItem value="limitacoes" className="border-[hsl(var(--border))]">
                     <AccordionTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:no-underline py-2">
                       Ver limitações declaradas pelos autores
                     </AccordionTrigger>
@@ -286,14 +289,14 @@ const Artigo = () => {
               {/* Conflitos de interesse */}
               {conflitosInteresse && (
                 <Accordion type="single" collapsible>
-                  <AccordionItem value="conflitos" className="border-border/50">
+                  <AccordionItem value="conflitos" className="border-[hsl(var(--border))]">
                     <AccordionTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:no-underline py-2">
                       Conflitos de interesse
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex items-start gap-2">
                         {conflitoStatus === "ausente" ? (
-                          <CheckCircle className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                          <CheckCircle className="h-4 w-4 shrink-0 text-grade-a-text mt-0.5" />
                         ) : (
                           <AlertTriangle className="h-4 w-4 shrink-0 text-grade-b-text mt-0.5" />
                         )}
@@ -308,12 +311,12 @@ const Artigo = () => {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="contexto" className="border-border">
-            <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
+          <AccordionItem value="contexto" className="border-[hsl(var(--border))]">
+            <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
               O que mudou em relação ao que já se sabia
             </AccordionTrigger>
-            <AccordionContent>
-              <p className="text-sm text-foreground/80 leading-relaxed">
+            <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
+              <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
                 {artigo.contexto_vs_anterior}
               </p>
             </AccordionContent>
@@ -323,7 +326,7 @@ const Artigo = () => {
         {/* CTA */}
         <Link
           to={`/quiz/${artigo.id}`}
-          className="block w-full rounded-lg bg-primary py-3.5 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           Responder questão clínica →
         </Link>
