@@ -1,0 +1,1 @@
+ALTER TABLE public.artigos ADD COLUMN IF NOT EXISTS fonte_texto text DEFAULT 'abstract';
