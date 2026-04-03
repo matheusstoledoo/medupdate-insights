@@ -7,121 +7,183 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface FullTextResult {
-  texto: string | null;
-  url: string | null;
-  fonte: string;
-  sucesso: boolean;
-}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// OBTENÇÃO DE TEXTO COMPLETO — ELink + PMC + HTML scraping
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-async function buscarDOI(pmid: string): Promise<string | null> {
+async function buscarLinksGratuitos(pmid: string): Promise<string[]> {
+  const linksGratuitos: string[] = [];
+
+  // FONTE 1 — PubMed Central (sempre gratuito se existir)
   try {
-    const res = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml`);
-    if (!res.ok) { await res.body?.cancel(); return null; }
-    const xml = await res.text();
-    const match = xml.match(/<ArticleId IdType="doi">([^<]+)<\/ArticleId>/);
-    return match ? match[1] : null;
-  } catch { return null; }
-}
-
-// FONTE 1 — PubMed Central
-async function buscarPMC(pmid: string): Promise<FullTextResult> {
-  try {
-    const convRes = await fetch(`https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids=${pmid}&format=json`);
-    if (!convRes.ok) { await convRes.body?.cancel(); return { texto: null, url: null, fonte: 'PMC', sucesso: false }; }
-    const convData = await convRes.json();
-    const pmcid = convData?.records?.[0]?.pmcid;
-    if (!pmcid) return { texto: null, url: null, fonte: 'PMC', sucesso: false };
-
-    const pmcRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext`);
-    if (!pmcRes.ok) { await pmcRes.body?.cancel(); return { texto: null, url: null, fonte: 'PMC', sucesso: false }; }
-    const text = await pmcRes.text();
-    if (text && text.trim().length > 500) {
-      return { texto: text.substring(0, 8000), url: `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcid}/`, fonte: 'PMC', sucesso: true };
+    const idConvResp = await fetch(
+      `https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids=${pmid}&format=json&email=medupdate@app.com`
+    );
+    if (idConvResp.ok) {
+      const idConvData = await idConvResp.json();
+      const pmcid = idConvData?.records?.[0]?.pmcid;
+      if (pmcid) linksGratuitos.push(`PMC:${pmcid}`);
+    } else {
+      await idConvResp.body?.cancel();
     }
-  } catch { /* fall through */ }
-  return { texto: null, url: null, fonte: 'PMC', sucesso: false };
-}
+  } catch { /* ignore */ }
 
-// FONTE 2 — Europa PMC
-async function buscarEuropaPMC(pmid: string): Promise<FullTextResult> {
+  // FONTE 2 — ELink llinkslib: todos os links com atributos
   try {
-    const res = await fetch(`https://www.ebi.ac.uk/europepmc/webservices/rest/${pmid}/fullTextXML?source=MED`);
-    if (!res.ok) { await res.body?.cancel(); return { texto: null, url: null, fonte: 'EuropaPMC', sucesso: false }; }
-    const xmlText = await res.text();
-    const texto = xmlText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (texto.length > 500) {
-      return { texto: texto.substring(0, 8000), url: `https://europepmc.org/article/med/${pmid}`, fonte: 'EuropaPMC', sucesso: true };
-    }
-  } catch { /* fall through */ }
-  return { texto: null, url: null, fonte: 'EuropaPMC', sucesso: false };
-}
+    const elinkResp = await fetch(
+      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=${pmid}&cmd=llinkslib&retmode=xml&email=medupdate@app.com`
+    );
+    if (elinkResp.ok) {
+      const xml = await elinkResp.text();
+      const blocos = xml.match(/<ObjUrl>[\s\S]*?<\/ObjUrl>/gi) || [];
 
-// FONTE 3 — Unpaywall
-async function buscarUnpaywall(doi: string): Promise<FullTextResult> {
-  try {
-    const res = await fetch(`https://api.unpaywall.org/v2/${encodeURIComponent(doi)}?email=medupdate@app.com`);
-    if (!res.ok) { await res.body?.cancel(); return { texto: null, url: null, fonte: 'Unpaywall', sucesso: false }; }
-    const data = await res.json();
+      for (const bloco of blocos) {
+        const urlMatch = bloco.match(/<Url>([^<]+)<\/Url>/);
+        if (!urlMatch) continue;
+        const url = urlMatch[1].trim()
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>');
 
-    const pdfUrl = data?.best_oa_location?.url_for_pdf;
-    const htmlUrl = data?.best_oa_location?.url;
-    const allLocations = data?.oa_locations || [];
+        const atributos = bloco.match(/<Attribute>([^<]+)<\/Attribute>/gi) || [];
+        const atributosTexto = atributos
+          .map(a => a.replace(/<\/?Attribute>/gi, '').toLowerCase())
+          .join(' ');
 
-    // Try PDF first
-    const pdfUrls = [pdfUrl, ...allLocations.map((l: any) => l.url_for_pdf)].filter(Boolean);
-    for (const url of pdfUrls) {
-      try {
-        const pdfRes = await fetch(url, { headers: { Accept: "application/pdf" }, redirect: "follow" });
-        if (!pdfRes.ok) { await pdfRes.body?.cancel(); continue; }
-        const buffer = await pdfRes.arrayBuffer();
-        const bytes = new Uint8Array(buffer.slice(0, 50000));
-        const rawText = new TextDecoder('latin1').decode(bytes);
-        const textoLegivel = rawText.replace(/[^\x20-\x7E\xC0-\xFF]/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 8000);
-        if (textoLegivel.length > 500) {
-          return { texto: textoLegivel, url, fonte: 'Unpaywall', sucesso: true };
+        const ehGratuito = (
+          atributosTexto.includes('full-text online') ||
+          atributosTexto.includes('free full text') ||
+          atributosTexto.includes('open access') ||
+          atributosTexto.includes('freely available') ||
+          atributosTexto.includes('full text available')
+        );
+
+        const ehPago = (
+          atributosTexto.includes('subscription') ||
+          atributosTexto.includes('fee required') ||
+          atributosTexto.includes('membership required')
+        );
+
+        if (ehGratuito && !ehPago) {
+          linksGratuitos.push(url);
         }
-      } catch { continue; }
+      }
+    } else {
+      await elinkResp.body?.cancel();
     }
+  } catch { /* ignore */ }
 
-    // Try HTML landing page
-    if (htmlUrl) {
-      try {
-        const htmlRes = await fetch(htmlUrl, { headers: { Accept: "text/html" }, redirect: "follow" });
-        if (htmlRes.ok) {
-          const html = await htmlRes.text();
-          const texto = html
-            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .substring(0, 8000);
-          if (texto.length > 500) {
-            return { texto, url: htmlUrl, fonte: 'Unpaywall', sucesso: true };
-          }
-        } else { await htmlRes.body?.cancel(); }
-      } catch { /* fall through */ }
-    }
-  } catch { /* fall through */ }
-  return { texto: null, url: null, fonte: 'Unpaywall', sucesso: false };
+  return linksGratuitos;
 }
 
-async function buscarTextoCompleto(pmid: string): Promise<FullTextResult> {
-  const pmc = await buscarPMC(pmid);
-  if (pmc.sucesso) return pmc;
+async function extrairTextoHTML(url: string): Promise<string | null> {
+  try {
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(15000),
+    });
 
-  const europa = await buscarEuropaPMC(pmid);
-  if (europa.sucesso) return europa;
+    if (!resp.ok) { await resp.body?.cancel(); return null; }
 
-  const doi = await buscarDOI(pmid);
-  if (doi) {
-    const unpay = await buscarUnpaywall(doi);
-    if (unpay.sucesso) return unpay;
+    const ct = resp.headers.get('content-type') || '';
+    if (ct.includes('pdf')) { await resp.body?.cancel(); return null; }
+
+    const html = await resp.text();
+    const texto = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+      .replace(/<header[\s\S]*?<\/header>/gi, '')
+      .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+      .replace(/<aside[\s\S]*?<\/aside>/gi, '')
+      .replace(/<figure[\s\S]*?<\/figure>/gi, '')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<\/h[1-6]>/gi, '\n\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\s{3,}/g, '\n\n')
+      .trim();
+
+    if (texto.length < 3000) return null;
+    return texto.substring(0, 12000);
+  } catch {
+    return null;
+  }
+}
+
+function identificarFonte(url: string): string {
+  if (url.includes('nature.com')) return 'Nature Portfolio';
+  if (url.includes('nejm.org')) return 'NEJM';
+  if (url.includes('thelancet.com')) return 'The Lancet';
+  if (url.includes('jamanetwork.com')) return 'JAMA Network';
+  if (url.includes('bmj.com')) return 'BMJ';
+  if (url.includes('ahajournals.org')) return 'AHA Journals';
+  if (url.includes('wiley.com') || url.includes('onlinelibrary')) return 'Wiley';
+  if (url.includes('europepmc.org')) return 'Europe PMC';
+  if (url.includes('frontiersin.org')) return 'Frontiers';
+  if (url.includes('mdpi.com')) return 'MDPI';
+  if (url.includes('plos')) return 'PLOS';
+  return 'Texto completo';
+}
+
+interface TextoCompletoResult {
+  texto: string;
+  fonte: string;
+  completo: boolean;
+  url: string | null;
+}
+
+async function obterTextoCompleto(pmid: string, abstractText: string): Promise<TextoCompletoResult> {
+  const links = await buscarLinksGratuitos(pmid);
+  console.log(`PMID ${pmid}: ${links.length} links gratuitos encontrados`, links.slice(0, 5));
+
+  for (const link of links) {
+    // PMC: usar API de texto puro
+    if (link.startsWith('PMC:')) {
+      const pmcid = link.replace('PMC:', '');
+      try {
+        const r = await fetch(
+          `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext&email=medupdate@app.com`
+        );
+        if (r.ok) {
+          const texto = await r.text();
+          if (texto.length > 3000) {
+            return {
+              texto: texto.substring(0, 12000),
+              fonte: 'PubMed Central',
+              completo: true,
+              url: `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
+            };
+          }
+        } else { await r.body?.cancel(); }
+      } catch { /* ignore */ }
+      continue;
+    }
+
+    // Links HTML gratuitos
+    const texto = await extrairTextoHTML(link);
+    if (texto) {
+      return { texto, fonte: identificarFonte(link), completo: true, url: link };
+    }
   }
 
-  return { texto: null, url: null, fonte: 'abstract', sucesso: false };
+  // Fallback: abstract
+  return { texto: abstractText, fonte: 'abstract', completo: false, url: null };
 }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HANDLER PRINCIPAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -159,31 +221,26 @@ serve(async (req) => {
         const abstractText = await abstractRes.text();
         if (!abstractText || abstractText.trim().length < 50) { resultado.erros.push(`Abstract too short for ${pmid}`); continue; }
 
-        // Cascading full-text search
-        const fullText = await buscarTextoCompleto(pmid);
-        console.log(`PMID ${pmid}: fonte=${fullText.fonte}, sucesso=${fullText.sucesso}, chars=${fullText.texto?.length || 0}`);
+        // Obter texto completo via ELink + PMC + HTML
+        const fullText = await obterTextoCompleto(pmid, abstractText);
+        console.log(`PMID ${pmid}: fonte=${fullText.fonte}, completo=${fullText.completo}, chars=${fullText.texto.length}`);
 
-        let conteudoParaClaude: string;
         let instrucaoExtra: string;
+        if (fullText.completo) {
+          instrucaoExtra = `Você tem acesso ao TEXTO COMPLETO deste artigo (fonte: ${fullText.fonte}).
+Analise com profundidade máxima, usando informações específicas do texto. Inclua no JSON:
+- analise_metodologica: método de randomização, cegamento, ITT, tamanho amostral, poder estatístico
+- vieses_detalhados: avaliação por domínio RoB 2 com julgamento e justificativa específica para cada domínio
+- limitacoes_autores: limitações declaradas pelos próprios autores
+- conflitos_interesse: conflitos e financiamento reportados
 
-        if (fullText.sucesso && fullText.texto) {
-          conteudoParaClaude = fullText.texto;
-          instrucaoExtra = `Você tem acesso ao TEXTO COMPLETO deste artigo médico (fonte: ${fullText.fonte}).
-Faça uma análise metodológica DETALHADA incluindo:
-- Método exato de randomização descrito pelos autores
-- Tipo de cegamento (duplo-cego, simples, aberto)
-- Análise por intenção de tratar: sim/não/parcial
-- Tamanho amostral e poder estatístico reportado
-- Desfechos primários e secundários pré-especificados
-- Taxa de perda de seguimento e como foi manejada
-- Limitações declaradas pelos próprios autores
-- Conflitos de interesse reportados no artigo
-- Financiamento do estudo
-
-Retorne o JSON com análise_metodologica, vieses_detalhados, limitacoes_autores e conflitos_interesse preenchidos em detalhe.`;
+Texto completo (${fullText.texto.length} chars):
+${fullText.texto}`;
         } else {
-          conteudoParaClaude = abstractText;
-          instrucaoExtra = `Você tem apenas o abstract. Faça a melhor análise possível mas sinalize explicitamente quais domínios do RoB 2 não puderam ser avaliados por falta de informação no abstract. Inclua na analise_metodologica: '[Baseado apenas no abstract — alguns domínios podem não ter sido avaliados por falta de informação]'`;
+          instrucaoExtra = `Você tem apenas o ABSTRACT. Faça a melhor análise possível. Nos campos vieses_detalhados e limitacoes_autores, indique explicitamente quais aspectos não puderam ser avaliados por limitação do abstract.
+
+Abstract:
+${abstractText}`;
         }
 
         const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -192,7 +249,7 @@ Retorne o JSON com análise_metodologica, vieses_detalhados, limitacoes_autores 
           body: JSON.stringify({
             model: "claude-sonnet-4-20250514",
             max_tokens: 2500,
-            messages: [{ role: "user", content: `Você é especialista em epidemiologia clínica. ${instrucaoExtra}\n\nAnalise este artigo médico e retorne SOMENTE um JSON válido, sem texto antes ou depois, sem markdown:\n{\n  "titulo": "título em português",\n  "journal": "nome do journal",\n  "ano": 2024,\n  "resumo_pt": "3 frases em português para médicos especialistas",\n  "tipo_estudo": "tipo do estudo",\n  "grade": "Alto, Moderado, Baixo ou Muito baixo",\n  "grade_justificativa": "uma frase",\n  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",\n  "analise_metodologica": "3-4 frases sobre metodologia",\n  "contexto_vs_anterior": "como este artigo se relaciona com o que já se sabia",\n  "vieses_detalhados": "lista detalhada dos vieses identificados por domínio RoB 2",\n  "limitacoes_autores": "limitações declaradas pelos próprios autores do artigo",\n  "conflitos_interesse": "conflitos de interesse reportados no artigo",\n  "questao": "caso clínico de 2-3 frases para quiz",\n  "alt_a": "alternativa A",\n  "alt_b": "alternativa B",\n  "alt_c": "alternativa C",\n  "alt_d": "alternativa D",\n  "resposta_correta": "A, B, C ou D",\n  "feedback_quiz": "2-3 frases explicando a resposta correta"\n}\n\nArtigo:\n${conteudoParaClaude}` }],
+            messages: [{ role: "user", content: `Você é especialista em epidemiologia clínica. ${instrucaoExtra}\n\nAnalise este artigo médico e retorne SOMENTE um JSON válido, sem texto antes ou depois, sem markdown:\n{\n  "titulo": "título em português",\n  "journal": "nome do journal",\n  "ano": 2024,\n  "resumo_pt": "3 frases em português para médicos especialistas",\n  "tipo_estudo": "tipo do estudo",\n  "grade": "Alto, Moderado, Baixo ou Muito baixo",\n  "grade_justificativa": "uma frase",\n  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",\n  "analise_metodologica": "3-4 frases sobre metodologia",\n  "contexto_vs_anterior": "como este artigo se relaciona com o que já se sabia",\n  "vieses_detalhados": "lista detalhada dos vieses identificados por domínio RoB 2",\n  "limitacoes_autores": "limitações declaradas pelos próprios autores do artigo",\n  "conflitos_interesse": "conflitos de interesse reportados no artigo",\n  "questao": "caso clínico de 2-3 frases para quiz",\n  "alt_a": "alternativa A",\n  "alt_b": "alternativa B",\n  "alt_c": "alternativa C",\n  "alt_d": "alternativa D",\n  "resposta_correta": "A, B, C ou D",\n  "feedback_quiz": "2-3 frases explicando a resposta correta"\n}\n\nArtigo:\n${fullText.texto}` }],
           }),
         });
 
@@ -243,7 +300,7 @@ Retorne o JSON com análise_metodologica, vieses_detalhados, limitacoes_autores 
           link_original: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
           citacoes: 0,
           score_relevancia: (ano - 2020) * 10 + 50,
-          tem_texto_completo: fullText.sucesso,
+          tem_texto_completo: fullText.completo,
           url_texto_completo: fullText.url,
           fonte_texto: fullText.fonte,
           data_publicacao: new Date().toISOString().split('T')[0],
