@@ -78,9 +78,9 @@ const getDomainIcon = (status: DomainStatus) => {
 
 const RobIcon = ({ resultado }: { resultado: string }) => {
   const lower = resultado?.toLowerCase() || "";
-  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-primary" />;
+  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-grade-a-text" />;
   if (lower.includes("preocupações") || lower.includes("algumas")) return <AlertTriangle className="h-4 w-4 text-grade-b-text" />;
-  return <XCircle className="h-4 w-4 text-destructive" />;
+  return <XCircle className="h-4 w-4 text-grade-d-text" />;
 };
 
 // --- Quiz helpers ---
