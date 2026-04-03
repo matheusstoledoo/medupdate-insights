@@ -16,11 +16,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const ensureUsuario = async (u: User) => {
+      try {
+        await supabase.from("usuarios").upsert({
+          id: u.id,
+          email: u.email,
+          nome:
+            u.user_metadata?.full_name ||
+            u.user_metadata?.name ||
+            u.email?.split("@")[0],
+        }, { onConflict: "id" });
+      } catch (e) {
+        console.error("Erro ao sincronizar usuario:", e);
+      }
+    };
+
     // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
+        if (event === "SIGNED_IN" && session?.user) {
+          setTimeout(() => ensureUsuario(session.user), 0);
+        }
       }
     );
 
