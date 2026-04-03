@@ -69,9 +69,9 @@ function parseViesesDetalhados(texto: string): RobDomain[] {
 
 const getDomainIcon = (status: DomainStatus) => {
   switch (status) {
-    case "baixo": return <CheckCircle className="h-4 w-4 shrink-0 text-primary" />;
+    case "baixo": return <CheckCircle className="h-4 w-4 shrink-0 text-grade-a-text" />;
     case "preocupações": return <AlertTriangle className="h-4 w-4 shrink-0 text-grade-b-text" />;
-    case "alto": return <XCircle className="h-4 w-4 shrink-0 text-destructive" />;
+    case "alto": return <XCircle className="h-4 w-4 shrink-0 text-grade-d-text" />;
     default: return <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground" />;
   }
 };
