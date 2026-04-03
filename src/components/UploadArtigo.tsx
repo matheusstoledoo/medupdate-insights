@@ -321,7 +321,7 @@ const UploadArtigo = () => {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Analisar um artigo</h1>
+          <h1 className="font-serif text-2xl font-semibold text-foreground mb-2" style={{ letterSpacing: '-0.02em' }}>Analisar um artigo</h1>
           <p className="text-sm text-muted-foreground">
             Faça upload de um PDF ou cole o texto do artigo
           </p>
