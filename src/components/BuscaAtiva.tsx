@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { abrirLinkExterno } from "@/lib/utils";
+import { buscarTextoCompletoNoFrontend } from "@/lib/fulltext";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
