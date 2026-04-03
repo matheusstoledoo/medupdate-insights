@@ -362,7 +362,7 @@ const UploadArtigo = () => {
 
             {/* File selected preview */}
             {arquivo && (
-              <div className="mt-4 rounded-lg border border-border bg-card p-4">
+              <div className="mt-4 rounded-lg border border-[hsl(var(--border))] bg-card p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <FileText className="h-5 w-5 text-primary" />
                   <div className="flex-1 min-w-0">
