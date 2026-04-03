@@ -445,7 +445,7 @@ const BuscaAtiva = () => {
           <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             {queryAberta ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             Query utilizada
-            <span className="text-xs text-secondary">({normalizacao.tipo_busca})</span>
+            <span className="text-xs text-primary">({normalizacao.tipo_busca})</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-4 rounded-lg border border-border bg-card p-4">
             {/* Concepts display */}
