@@ -149,6 +149,47 @@ export type Database = {
           },
         ]
       }
+      streaks: {
+        Row: {
+          created_at: string | null
+          id: string
+          streak_atual: number | null
+          streak_maximo: number | null
+          total_questoes_respondidas: number | null
+          ultimo_dia_ativo: string | null
+          updated_at: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          streak_atual?: number | null
+          streak_maximo?: number | null
+          total_questoes_respondidas?: number | null
+          ultimo_dia_ativo?: string | null
+          updated_at?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          streak_atual?: number | null
+          streak_maximo?: number | null
+          total_questoes_respondidas?: number | null
+          ultimo_dia_ativo?: string | null
+          updated_at?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streaks_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           created_at: string | null
@@ -178,7 +219,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      atualizar_streak: { Args: { p_usuario_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
