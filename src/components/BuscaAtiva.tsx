@@ -322,7 +322,7 @@ const BuscaAtiva = () => {
         <button
           onClick={() => executarBusca()}
           disabled={normalizando || buscando || !texto.trim()}
-          className="rounded-lg bg-secondary px-6 py-3.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+          className="rounded-md bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
         >
           {normalizando || buscando ? (
             <Loader2 className="h-4 w-4 animate-spin" />
