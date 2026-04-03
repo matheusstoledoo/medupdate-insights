@@ -265,11 +265,29 @@ const Quiz = () => {
             </div>
 
             {/* Feedback text */}
-            <div className="rounded-lg border border-border bg-card p-5 mb-8">
+            <div className="rounded-lg border border-border bg-card p-5 mb-6">
               <p className="text-sm leading-relaxed text-foreground/90">
                 {artigo.feedback_quiz}
               </p>
             </div>
+
+            {/* Streak display - only if >= 3 */}
+            {streakAtual !== null && streakAtual >= 3 && (
+              <div className={`rounded-lg border px-5 py-4 mb-6 text-center ${
+                streakAtual === 7
+                  ? "border-emerald-500/50 bg-emerald-950/40"
+                  : "border-emerald-700/30 bg-emerald-950/20"
+              }`}>
+                <div className={`font-bold text-foreground ${streakAtual === 7 ? "text-2xl mb-1" : "text-lg"}`}>
+                  🔥 {streakAtual === 7 ? "7 dias — uma semana de atualização contínua em Cardiologia" : `${streakAtual} dias`}
+                </div>
+                {streakAtual !== 7 && (
+                  <p className="text-xs text-emerald-400/80 mt-1">
+                    você está atualizado em Cardiologia há {streakAtual} dias consecutivos
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Soft wall / saved state */}
             {saved ? (
