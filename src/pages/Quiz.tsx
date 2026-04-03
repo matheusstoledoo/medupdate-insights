@@ -18,6 +18,7 @@ const Quiz = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [streakAtual, setStreakAtual] = useState<number | null>(null);
 
   const { data: artigo, isLoading } = useQuery({
     queryKey: ["artigo", id],
@@ -62,8 +63,29 @@ const Quiz = () => {
     return (artigo as any)[key] as string;
   };
 
-  const handleConfirm = () => {
+  const updateStreak = async (userId: string) => {
+    try {
+      await supabase.rpc('atualizar_streak', { p_usuario_id: userId });
+      const { data: streakData } = await supabase
+        .from('streaks')
+        .select('streak_atual, total_questoes_respondidas')
+        .eq('usuario_id', userId)
+        .maybeSingle();
+      if (streakData) {
+        setStreakAtual(streakData.streak_atual);
+      }
+    } catch (e) {
+      console.error('Erro ao atualizar streak:', e);
+    }
+  };
+
+  const handleConfirm = async () => {
     setConfirmed(true);
+    // Update streak if user is logged in
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await updateStreak(user.id);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -102,6 +124,8 @@ const Quiz = () => {
           proxima_revisao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         });
 
+        await updateStreak(user.id);
+
         setSaved(true);
         toast.success("Progresso salvo! Lembrete de revisão agendado para daqui 7 dias.");
       }
@@ -130,6 +154,8 @@ const Quiz = () => {
         data_resposta: new Date().toISOString(),
         proxima_revisao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       });
+
+      await updateStreak(user.id);
 
       setSaved(true);
       setSaving(false);
