@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Lora", "Georgia", "serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
@@ -42,6 +43,8 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          light: "hsl(var(--accent-light))",
+          mid: "hsl(var(--accent-mid))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -73,6 +76,13 @@ export default {
           bg: "hsl(var(--grade-c-bg))",
           text: "hsl(var(--grade-c-text))",
         },
+        "grade-d": {
+          bg: "hsl(var(--grade-d-bg))",
+          text: "hsl(var(--grade-d-text))",
+        },
+        "surface-secondary": "hsl(var(--bg-secondary))",
+        "surface-tertiary": "hsl(var(--bg-tertiary))",
+        "surface-inverse": "hsl(var(--bg-inverse))",
       },
       borderRadius: {
         lg: "var(--radius)",
