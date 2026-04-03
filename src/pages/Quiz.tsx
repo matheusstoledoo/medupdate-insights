@@ -63,8 +63,29 @@ const Quiz = () => {
     return (artigo as any)[key] as string;
   };
 
-  const handleConfirm = () => {
+  const updateStreak = async (userId: string) => {
+    try {
+      await supabase.rpc('atualizar_streak', { p_usuario_id: userId });
+      const { data: streakData } = await supabase
+        .from('streaks')
+        .select('streak_atual, total_questoes_respondidas')
+        .eq('usuario_id', userId)
+        .maybeSingle();
+      if (streakData) {
+        setStreakAtual(streakData.streak_atual);
+      }
+    } catch (e) {
+      console.error('Erro ao atualizar streak:', e);
+    }
+  };
+
+  const handleConfirm = async () => {
     setConfirmed(true);
+    // Update streak if user is logged in
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await updateStreak(user.id);
+    }
   };
 
   const handleGoogleLogin = async () => {
