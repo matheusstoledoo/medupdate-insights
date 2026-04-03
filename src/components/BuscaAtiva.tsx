@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { abrirLinkExterno } from "@/lib/utils";
+import { buscarTextoCompletoNoFrontend } from "@/lib/fulltext";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
@@ -32,6 +33,7 @@ interface PubMedResult {
   link: string;
   artigoLocal?: { id: string; grade?: string | null; resumo_pt?: string | null } | null;
   analisando?: boolean;
+  statusAnalise?: string;
 }
 
 interface Conceito {
@@ -242,16 +244,33 @@ const BuscaAtiva = () => {
     setBuscando(false);
   };
 
+  const atualizarStatus = (pmid: string, msg: string) => {
+    setResultados((prev) =>
+      prev.map((r) => (r.pmid === pmid ? { ...r, statusAnalise: msg } : r))
+    );
+  };
+
   const analisarArtigo = async (pmid: string) => {
     if (analisesRealizadas >= 3) return;
 
     setResultados((prev) =>
-      prev.map((r) => (r.pmid === pmid ? { ...r, analisando: true } : r))
+      prev.map((r) => (r.pmid === pmid ? { ...r, analisando: true, statusAnalise: 'Verificando disponibilidade de texto completo...' } : r))
     );
 
     try {
+      // PASSO 1: Buscar texto completo no FRONTEND (browser não é bloqueado)
+      const fullText = await buscarTextoCompletoNoFrontend(pmid, (msg) => atualizarStatus(pmid, msg));
+
+      // PASSO 2: Enviar para Edge Function com texto já extraído
+      atualizarStatus(pmid, fullText.completo ? 'Analisando com IA (texto completo)...' : 'Analisando com IA...');
+
       const { data, error } = await supabase.functions.invoke("processar-artigo-unico", {
-        body: { pmid },
+        body: {
+          pmid,
+          textoCompleto: fullText.completo ? fullText.texto : undefined,
+          fonteTexto: fullText.completo ? fullText.fonte : undefined,
+          urlTextoCompleto: fullText.completo ? fullText.url : undefined,
+        },
       });
 
       if (error) throw new Error(error.message);
@@ -263,6 +282,7 @@ const BuscaAtiva = () => {
             ? {
                 ...r,
                 analisando: false,
+                statusAnalise: undefined,
                 artigoLocal: { id: data.id, grade: data.grade, resumo_pt: data.resumo_pt },
               }
             : r
@@ -272,7 +292,7 @@ const BuscaAtiva = () => {
     } catch (err: any) {
       console.error("Erro ao analisar artigo:", err);
       setResultados((prev) =>
-        prev.map((r) => (r.pmid === pmid ? { ...r, analisando: false } : r))
+        prev.map((r) => (r.pmid === pmid ? { ...r, analisando: false, statusAnalise: undefined } : r))
       );
       setErroMsg(`Erro ao analisar PMID ${pmid}: ${err.message}`);
     }
@@ -551,7 +571,7 @@ const BuscaAtiva = () => {
                       {r.analisando && (
                         <div className="flex items-center gap-2 mb-3 rounded-md bg-secondary/10 px-3 py-2">
                           <Loader2 className="h-3.5 w-3.5 animate-spin text-secondary" />
-                          <span className="text-xs text-secondary">Analisando com IA... (pode levar 20 segundos)</span>
+                          <span className="text-xs text-secondary">{r.statusAnalise || 'Analisando...'}</span>
                         </div>
                       )}
 
