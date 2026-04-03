@@ -8,6 +8,7 @@ import GradeBadge from "@/components/GradeBadge";
 import { useStreak } from "@/hooks/use-streak";
 
 const Feed = () => {
+  const { streakAtual } = useStreak();
   const [search, setSearch] = useState("");
 
   const { data: artigos, isLoading } = useQuery({
