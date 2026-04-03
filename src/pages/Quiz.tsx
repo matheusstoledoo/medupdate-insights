@@ -124,6 +124,8 @@ const Quiz = () => {
           proxima_revisao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         });
 
+        await updateStreak(user.id);
+
         setSaved(true);
         toast.success("Progresso salvo! Lembrete de revisão agendado para daqui 7 dias.");
       }
