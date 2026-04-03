@@ -425,9 +425,9 @@ const BuscaAtiva = () => {
 
       {/* Normalizing indicator */}
       {normalizando && (
-        <div className="flex items-center gap-3 rounded-lg border border-secondary/20 bg-secondary/5 p-4">
-          <Loader2 className="h-5 w-5 animate-spin text-secondary" />
-          <span className="text-sm text-secondary">Traduzindo sua busca para linguagem técnica...</span>
+        <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-accent-light p-4">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-sm text-primary">Traduzindo sua busca para linguagem técnica...</span>
         </div>
       )}
 
