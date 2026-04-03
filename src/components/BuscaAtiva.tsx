@@ -371,10 +371,10 @@ const BuscaAtiva = () => {
                 <button
                   key={t}
                   onClick={() => setTipoEstudo(t)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                  className={`rounded px-3 py-1 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
                     tipoEstudo === t
-                      ? "bg-secondary text-secondary-foreground border-secondary"
-                      : "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-transparent text-muted-foreground border-[hsl(var(--border))] hover:text-foreground"
                   }`}
                 >
                   {tipoEstudoLabels[t]}
