@@ -8,93 +8,53 @@ const corsHeaders = {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// OBTENÇÃO DE TEXTO COMPLETO — ELink + PMC + HTML scraping
+// OBTENÇÃO DE TEXTO COMPLETO — com logging detalhado
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-async function buscarLinksGratuitos(pmid: string): Promise<string[]> {
-  const linksGratuitos: string[] = [];
-
-  // FONTE 1 — PubMed Central (sempre gratuito se existir)
-  try {
-    const idConvResp = await fetch(
-      `https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids=${pmid}&format=json&email=medupdate@app.com`
-    );
-    if (idConvResp.ok) {
-      const idConvData = await idConvResp.json();
-      const pmcid = idConvData?.records?.[0]?.pmcid;
-      if (pmcid) linksGratuitos.push(`PMC:${pmcid}`);
-    } else {
-      await idConvResp.body?.cancel();
-    }
-  } catch { /* ignore */ }
-
-  // FONTE 2 — ELink llinkslib: todos os links com atributos
-  try {
-    const elinkResp = await fetch(
-      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=${pmid}&cmd=llinkslib&retmode=xml&email=medupdate@app.com`
-    );
-    if (elinkResp.ok) {
-      const xml = await elinkResp.text();
-      const blocos = xml.match(/<ObjUrl>[\s\S]*?<\/ObjUrl>/gi) || [];
-
-      for (const bloco of blocos) {
-        const urlMatch = bloco.match(/<Url>([^<]+)<\/Url>/);
-        if (!urlMatch) continue;
-        const url = urlMatch[1].trim()
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>');
-
-        const atributos = bloco.match(/<Attribute>([^<]+)<\/Attribute>/gi) || [];
-        const atributosTexto = atributos
-          .map(a => a.replace(/<\/?Attribute>/gi, '').toLowerCase())
-          .join(' ');
-
-        const ehGratuito = (
-          atributosTexto.includes('full-text online') ||
-          atributosTexto.includes('free full text') ||
-          atributosTexto.includes('open access') ||
-          atributosTexto.includes('freely available') ||
-          atributosTexto.includes('full text available')
-        );
-
-        const ehPago = (
-          atributosTexto.includes('subscription') ||
-          atributosTexto.includes('fee required') ||
-          atributosTexto.includes('membership required')
-        );
-
-        if (ehGratuito && !ehPago) {
-          linksGratuitos.push(url);
-        }
-      }
-    } else {
-      await elinkResp.body?.cancel();
-    }
-  } catch { /* ignore */ }
-
-  return linksGratuitos;
+function identificarPublisher(url: string): string {
+  if (url.includes('nature.com')) return 'Nature Portfolio';
+  if (url.includes('nejm.org')) return 'NEJM';
+  if (url.includes('thelancet.com')) return 'The Lancet';
+  if (url.includes('jamanetwork.com')) return 'JAMA Network';
+  if (url.includes('bmj.com')) return 'BMJ';
+  if (url.includes('ahajournals.org')) return 'AHA Journals';
+  if (url.includes('wiley.com') || url.includes('onlinelibrary')) return 'Wiley';
+  if (url.includes('europepmc.org')) return 'Europe PMC';
+  if (url.includes('frontiersin.org')) return 'Frontiers';
+  if (url.includes('mdpi.com')) return 'MDPI';
+  if (url.includes('plos')) return 'PLOS';
+  if (url.includes('doi.org')) return 'Publisher';
+  return 'Texto completo';
 }
 
-async function extrairTextoHTML(url: string): Promise<string | null> {
+async function buscarTextoHTML(url: string): Promise<string | null> {
   try {
+    console.log(`[HTML] Fazendo fetch: ${url}`);
     const resp = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
       },
       redirect: 'follow',
       signal: AbortSignal.timeout(15000),
     });
 
+    console.log(`[HTML] Status: ${resp.status} | Content-Type: ${resp.headers.get('content-type')}`);
     if (!resp.ok) { await resp.body?.cancel(); return null; }
 
     const ct = resp.headers.get('content-type') || '';
-    if (ct.includes('pdf')) { await resp.body?.cancel(); return null; }
+    if (ct.includes('pdf')) {
+      console.log(`[HTML] É PDF — ignorando`);
+      await resp.body?.cancel();
+      return null;
+    }
 
     const html = await resp.text();
+    console.log(`[HTML] HTML recebido: ${html.length} chars`);
+
     const texto = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -114,26 +74,16 @@ async function extrairTextoHTML(url: string): Promise<string | null> {
       .replace(/\s{3,}/g, '\n\n')
       .trim();
 
-    if (texto.length < 3000) return null;
+    console.log(`[HTML] Texto extraído: ${texto.length} chars`);
+    if (texto.length < 3000) {
+      console.log(`[HTML] Texto muito curto (< 3000) — provável paywall ou apenas abstract`);
+      return null;
+    }
     return texto.substring(0, 12000);
-  } catch {
+  } catch (e) {
+    console.log(`[HTML] Erro: ${e}`);
     return null;
   }
-}
-
-function identificarFonte(url: string): string {
-  if (url.includes('nature.com')) return 'Nature Portfolio';
-  if (url.includes('nejm.org')) return 'NEJM';
-  if (url.includes('thelancet.com')) return 'The Lancet';
-  if (url.includes('jamanetwork.com')) return 'JAMA Network';
-  if (url.includes('bmj.com')) return 'BMJ';
-  if (url.includes('ahajournals.org')) return 'AHA Journals';
-  if (url.includes('wiley.com') || url.includes('onlinelibrary')) return 'Wiley';
-  if (url.includes('europepmc.org')) return 'Europe PMC';
-  if (url.includes('frontiersin.org')) return 'Frontiers';
-  if (url.includes('mdpi.com')) return 'MDPI';
-  if (url.includes('plos')) return 'PLOS';
-  return 'Texto completo';
 }
 
 interface TextoCompletoResult {
@@ -144,40 +94,142 @@ interface TextoCompletoResult {
 }
 
 async function obterTextoCompleto(pmid: string, abstractText: string): Promise<TextoCompletoResult> {
-  const links = await buscarLinksGratuitos(pmid);
-  console.log(`PMID ${pmid}: ${links.length} links gratuitos encontrados`, links.slice(0, 5));
+  console.log(`[TEXTO-COMPLETO] Iniciando para PMID: ${pmid}`);
 
-  for (const link of links) {
-    // PMC: usar API de texto puro
-    if (link.startsWith('PMC:')) {
-      const pmcid = link.replace('PMC:', '');
-      try {
-        const r = await fetch(
-          `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext&email=medupdate@app.com`
+  // ─── FONTE 1: PMC via API de conversão de IDs ───────────────────
+  try {
+    console.log(`[PMC] Buscando PMCID para PMID ${pmid}`);
+    const idConvResp = await fetch(
+      `https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids=${pmid}&format=json&email=medupdate@app.com`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (idConvResp.ok) {
+      const idConvData = await idConvResp.json();
+      const pmcid = idConvData?.records?.[0]?.pmcid;
+      console.log(`[PMC] PMCID encontrado: ${pmcid || 'nenhum'}`);
+
+      if (pmcid) {
+        const pmcResp = await fetch(
+          `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext&email=medupdate@app.com`,
+          { signal: AbortSignal.timeout(15000) }
         );
-        if (r.ok) {
-          const texto = await r.text();
-          if (texto.length > 3000) {
-            return {
-              texto: texto.substring(0, 12000),
-              fonte: 'PubMed Central',
-              completo: true,
-              url: `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
-            };
-          }
-        } else { await r.body?.cancel(); }
-      } catch { /* ignore */ }
-      continue;
+        const texto = await pmcResp.text();
+        console.log(`[PMC] Texto recebido: ${texto.length} chars`);
+        if (texto.length > 3000) {
+          console.log(`[PMC] ✓ Texto completo via PMC`);
+          return {
+            texto: texto.substring(0, 12000),
+            fonte: 'PubMed Central',
+            completo: true,
+            url: `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
+          };
+        }
+      }
+    } else {
+      console.log(`[PMC] idconv status: ${idConvResp.status}`);
+      await idConvResp.body?.cancel();
     }
-
-    // Links HTML gratuitos
-    const texto = await extrairTextoHTML(link);
-    if (texto) {
-      return { texto, fonte: identificarFonte(link), completo: true, url: link };
-    }
+  } catch (e) {
+    console.log(`[PMC] Erro: ${e}`);
   }
 
-  // Fallback: abstract
+  // ─── FONTE 2: ELink — links gratuitos do publisher ──────────────
+  try {
+    console.log(`[ELINK] Buscando links gratuitos para PMID ${pmid}`);
+    const elinkResp = await fetch(
+      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=${pmid}&cmd=llinks&retmode=xml&email=medupdate@app.com`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    if (elinkResp.ok) {
+      const xmlRaw = await elinkResp.text();
+      console.log(`[ELINK] XML recebido: ${xmlRaw.length} chars`);
+      console.log(`[ELINK] Preview XML: ${xmlRaw.substring(0, 500)}`);
+
+      const linksGratuitos: string[] = [];
+      const blocos = xmlRaw.match(/<ObjUrl>[\s\S]*?<\/ObjUrl>/gi) || [];
+      console.log(`[ELINK] Blocos ObjUrl encontrados: ${blocos.length}`);
+
+      for (const bloco of blocos) {
+        const urlMatch = bloco.match(/<Url><!\[CDATA\[([^\]]+)\]\]><\/Url>|<Url>([^<]+)<\/Url>/);
+        if (!urlMatch) continue;
+        const url = (urlMatch[1] || urlMatch[2] || '').trim()
+          .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+
+        const atributos = (bloco.match(/<Attribute>[\s\S]*?<\/Attribute>/gi) || [])
+          .map(a => a.replace(/<\/?Attribute>/gi, '').toLowerCase().trim());
+
+        console.log(`[ELINK] URL: ${url} | Atributos: ${atributos.join(', ')}`);
+
+        const livre = atributos.some(a =>
+          a.includes('free') ||
+          a.includes('open access') ||
+          a.includes('full-text online') ||
+          a.includes('full text online') ||
+          a.includes('freely available')
+        );
+        const pago = atributos.some(a =>
+          a.includes('subscription') ||
+          a.includes('fee required') ||
+          a.includes('membership')
+        );
+
+        if (livre && !pago) {
+          console.log(`[ELINK] ✓ Link gratuito: ${url}`);
+          linksGratuitos.push(url);
+        }
+      }
+
+      console.log(`[ELINK] Total links gratuitos: ${linksGratuitos.length}`);
+
+      for (const url of linksGratuitos) {
+        console.log(`[FETCH] Tentando: ${url}`);
+        const texto = await buscarTextoHTML(url);
+        if (texto) {
+          console.log(`[FETCH] ✓ Texto completo obtido: ${texto.length} chars de ${url}`);
+          return { texto, fonte: identificarPublisher(url), completo: true, url };
+        } else {
+          console.log(`[FETCH] ✗ Falhou para: ${url}`);
+        }
+      }
+    } else {
+      console.log(`[ELINK] Status: ${elinkResp.status}`);
+      await elinkResp.body?.cancel();
+    }
+  } catch (e) {
+    console.log(`[ELINK] Erro: ${e}`);
+  }
+
+  // ─── FONTE 3: DOI direto via doi.org ────────────────────────────
+  try {
+    console.log(`[DOI] Buscando DOI para PMID ${pmid}`);
+    const efetchResp = await fetch(
+      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml&email=medupdate@app.com`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    if (efetchResp.ok) {
+      const xmlPubmed = await efetchResp.text();
+      const doiMatch = xmlPubmed.match(/<ArticleId IdType="doi">([^<]+)<\/ArticleId>/);
+      const doi = doiMatch?.[1]?.trim();
+      console.log(`[DOI] DOI encontrado: ${doi || 'nenhum'}`);
+
+      if (doi) {
+        const doiUrl = `https://doi.org/${doi}`;
+        console.log(`[DOI] Tentando via doi.org: ${doiUrl}`);
+        const texto = await buscarTextoHTML(doiUrl);
+        if (texto) {
+          console.log(`[DOI] ✓ Texto completo via DOI`);
+          return { texto, fonte: identificarPublisher(doiUrl), completo: true, url: doiUrl };
+        }
+      }
+    } else {
+      await efetchResp.body?.cancel();
+    }
+  } catch (e) {
+    console.log(`[DOI] Erro: ${e}`);
+  }
+
+  // ─── FALLBACK: abstract ──────────────────────────────────────────
+  console.log(`[FALLBACK] Usando abstract (${abstractText.length} chars)`);
   return { texto: abstractText, fonte: 'abstract', completo: false, url: null };
 }
 
