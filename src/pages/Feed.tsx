@@ -5,10 +5,11 @@ import { Search, ExternalLink } from "lucide-react";
 import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
 import BuscaAtiva from "@/components/BuscaAtiva";
+import UploadArtigo from "@/components/UploadArtigo";
 import { useStreak } from "@/hooks/use-streak";
 
 type Filtro = "hoje" | "semana" | "mes" | "ano" | "todos";
-type Modo = "atualizacoes" | "busca";
+type Modo = "atualizacoes" | "busca" | "upload";
 
 const filtroLabels: Record<Filtro, string> = {
   hoje: "Hoje",
