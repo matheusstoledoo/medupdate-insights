@@ -4,18 +4,18 @@ interface HeaderProps {
 
 const Header = ({ streakAtual }: HeaderProps) => {
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between">
-        <span className="text-lg font-semibold tracking-tight text-foreground">
+    <header className="sticky top-0 z-50 bg-surface-inverse" style={{ height: '52px' }}>
+      <div className="container flex h-full items-center justify-between">
+        <span className="font-serif italic text-lg text-white tracking-tight">
           MedUpdate
         </span>
         <div className="flex items-center gap-3">
           {streakAtual !== null && streakAtual !== undefined && streakAtual >= 3 && (
-            <span className="font-mono text-sm text-orange-400">
+            <span className="font-mono text-sm text-white">
               🔥 {streakAtual}
             </span>
           )}
-          <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          <span className="font-mono text-[0.72rem] text-white/60 border border-white/15 px-2.5 py-1 rounded">
             Cardiologia
           </span>
         </div>

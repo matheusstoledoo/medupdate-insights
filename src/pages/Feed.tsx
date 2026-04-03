@@ -48,12 +48,12 @@ const formatarBadgeData = (dataStr: string | null) => {
   const todayStart = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
   const diff = Math.floor((todayStart.getTime() - data.getTime()) / 86400000);
 
-  if (diff === 0) return { label: "Hoje", className: "bg-primary/15 text-primary border-primary/30" };
-  if (diff <= 7) return { label: `${diff}d atrás`, className: "bg-blue-500/15 text-blue-400 border-blue-500/30" };
+  if (diff === 0) return { label: "Hoje", className: "bg-accent-light text-primary" };
+  if (diff <= 7) return { label: `${diff}d atrás`, className: "bg-accent-light text-accent-mid" };
   if (diff <= 30) {
-    return { label: data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), className: "bg-muted text-muted-foreground border-border" };
+    return { label: data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), className: "bg-surface-tertiary text-muted-foreground" };
   }
-  return { label: data.toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" }), className: "bg-muted text-muted-foreground border-border" };
+  return { label: data.toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" }), className: "bg-surface-tertiary text-muted-foreground" };
 };
 
 const Feed = () => {
@@ -109,51 +109,46 @@ const Feed = () => {
   const now = new Date();
   const weekLabel = `Semana de ${now.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}`;
 
+  const modos: { key: Modo; label: string }[] = [
+    { key: "atualizacoes", label: "Atualizações" },
+    { key: "busca", label: "Busca Ativa" },
+    { key: "upload", label: "Upload" },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Header streakAtual={streakAtual} />
-      <main className="container py-8">
-        {/* Mode toggle */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setModo("atualizacoes")}
-            className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-              modo === "atualizacoes"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Atualizações
-          </button>
-          <button
-            onClick={() => setModo("busca")}
-            className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-              modo === "busca"
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Busca Ativa
-          </button>
-          <button
-            onClick={() => setModo("upload")}
-            className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-              modo === "upload"
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Upload
-          </button>
-        </div>
 
+      {/* Nav tabs inside dark header extension */}
+      <div className="bg-surface-inverse">
+        <div className="container flex gap-1 pb-0">
+          {modos.map((m) => (
+            <button
+              key={m.key}
+              onClick={() => setModo(m.key)}
+              className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+                modo === m.key
+                  ? "text-white"
+                  : "text-white/50 hover:text-white/70"
+              }`}
+            >
+              {m.label}
+              {modo === m.key && (
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-white rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <main className="container max-w-[720px] py-8">
         {modo === "upload" ? (
           <UploadArtigo />
         ) : modo === "busca" ? (
           <BuscaAtiva />
         ) : (
           <>
-            <h1 className="text-2xl font-semibold text-foreground mb-1">
+            <h1 className="font-serif text-[1.1rem] font-medium text-foreground mb-1">
               Cardiologia · {weekLabel}
             </h1>
 
@@ -163,10 +158,10 @@ const Feed = () => {
                 <button
                   key={f}
                   onClick={() => setFiltro(f)}
-                  className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium transition-colors border ${
+                  className={`whitespace-nowrap rounded px-3 py-1.5 text-[0.72rem] font-medium uppercase tracking-wide transition-colors ${
                     filtro === f
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-tertiary text-muted-foreground border border-transparent hover:text-foreground"
                   }`}
                 >
                   {filtroLabels[f]}
@@ -193,14 +188,14 @@ const Feed = () => {
                 placeholder="Buscar por título do artigo..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-primary"
               />
             </div>
 
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-40 rounded-lg bg-card animate-pulse" />
+                  <div key={i} className="h-40 rounded-lg bg-surface-secondary animate-pulse" />
                 ))}
               </div>
             ) : (
@@ -210,30 +205,31 @@ const Feed = () => {
                   return (
                     <article
                       key={artigo.id}
-                      className="rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/30 relative"
+                      className="rounded-lg border border-[hsl(var(--border))] bg-card p-5 transition-all hover:border-[hsl(40_6%_10%/0.18)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)] relative"
+                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
                     >
                       {badge && (
-                        <span className={`absolute top-3 right-3 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${badge.className}`}>
+                        <span className={`absolute top-3 right-3 rounded px-2 py-0.5 text-[10px] font-medium ${badge.className}`}>
                           {badge.label}
                         </span>
                       )}
-                      <div className="flex items-center gap-3 mb-3 pr-20">
+                      <div className="flex items-center gap-3 mb-2 pr-20">
                         <GradeBadge grade={artigo.grade || ""} />
-                        <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                        <span className="font-mono text-[0.72rem] uppercase tracking-widest text-muted-foreground">
                           {artigo.journal}
                         </span>
                       </div>
 
-                      <h2 className="text-base font-semibold text-foreground leading-snug mb-2 pr-16">
+                      <h2 className="font-serif text-[1.05rem] font-semibold text-foreground leading-snug mb-2 pr-16" style={{ letterSpacing: '-0.02em' }}>
                         {artigo.titulo}
                       </h2>
 
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                      <p className="text-[0.88rem] text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
                         {artigo.resumo_pt}
                       </p>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2 font-mono text-[0.72rem] text-muted-foreground">
                           <span>{artigo.ano}</span>
                           <span>·</span>
                           <span>{artigo.citacoes} citações</span>
@@ -242,7 +238,7 @@ const Feed = () => {
                               <span>·</span>
                               <button
                                 onClick={() => abrirArtigo(artigo.link_original!)}
-                                className="inline-flex items-center gap-1 text-secondary hover:underline"
+                                className="inline-flex items-center gap-1 text-primary hover:underline"
                               >
                                 <ExternalLink className="h-3 w-3" />
                                 PubMed

@@ -72,8 +72,6 @@ const Quiz = () => {
     setSaved(true);
   };
 
-  // Auto-save progress if user is already logged in when they confirm
-  // or if they return from OAuth redirect with an existing session
   useEffect(() => {
     if (user && confirmed && !saved && !dismissed && artigo) {
       setSaving(true);
@@ -91,8 +89,8 @@ const Quiz = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-8">
-          <div className="h-64 rounded-lg bg-card animate-pulse" />
+        <main className="container max-w-[720px] py-8">
+          <div className="h-64 rounded-lg bg-surface-secondary animate-pulse" />
         </main>
       </div>
     );
@@ -102,7 +100,7 @@ const Quiz = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-8 text-center text-muted-foreground">
+        <main className="container max-w-[720px] py-8 text-center text-muted-foreground">
           Artigo não encontrado.
         </main>
       </div>
@@ -139,9 +137,6 @@ const Quiz = () => {
       if (result.redirected) {
         return;
       }
-
-      // After OAuth without redirect (popup flow), session is set via AuthContext
-      // The useEffect above will auto-save progress
     } catch (e) {
       toast.error("Erro ao salvar progresso");
       setSaving(false);
@@ -151,7 +146,7 @@ const Quiz = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container max-w-3xl py-8">
+      <main className="container max-w-[720px] py-8">
         {/* Article header */}
         <div className="flex items-center gap-3 mb-6">
           <GradeBadge grade={artigo.grade || ""} />
@@ -162,12 +157,14 @@ const Quiz = () => {
 
         {/* Question */}
         <div className="mb-6">
-          <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="text-[0.68rem] font-medium uppercase tracking-[0.1em] text-muted-foreground">
             Questão clínica
           </span>
-          <p className="mt-2 text-base font-medium text-foreground leading-relaxed">
-            {artigo.questao}
-          </p>
+          <div className="mt-3 rounded-md bg-surface-secondary border-l-[3px] border-[hsl(var(--border))] px-4 py-3.5">
+            <p className="font-serif italic text-base text-foreground leading-[1.75]">
+              {artigo.questao}
+            </p>
+          </div>
         </div>
 
         {/* Alternatives */}
@@ -182,13 +179,13 @@ const Quiz = () => {
                   <button
                     key={key}
                     onClick={() => !confirmed && setSelected(key)}
-                    className={`w-full text-left rounded-lg border px-4 py-3 text-sm transition-colors ${
+                    className={`w-full text-left rounded-md border-[1.5px] px-4 py-3 text-[0.9rem] transition-colors ${
                       isSelected
-                        ? "border-primary bg-primary/10 text-foreground"
-                        : "border-border bg-card text-foreground/80 hover:border-muted-foreground/30"
+                        ? "border-primary bg-accent-light text-foreground"
+                        : "border-[hsl(var(--border))] bg-card text-foreground hover:border-[hsl(40_6%_10%/0.18)]"
                     }`}
                   >
-                    <span className="font-mono font-semibold mr-2 text-muted-foreground">
+                    <span className="font-mono text-muted-foreground mr-2">
                       {letterLabels[i]}.
                     </span>
                     {text}
@@ -200,7 +197,7 @@ const Quiz = () => {
             {selected && (
               <button
                 onClick={handleConfirm}
-                className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Confirmar resposta
               </button>
@@ -210,12 +207,12 @@ const Quiz = () => {
           <>
             {/* Feedback banner */}
             {acertou ? (
-              <div className="rounded-lg bg-primary/15 border border-primary/30 px-4 py-3 mb-6">
-                <span className="text-sm font-semibold text-primary">✓ Correto!</span>
+              <div className="rounded-lg bg-grade-a-bg border-l-[3px] border-grade-a-text px-4 py-3 mb-6">
+                <span className="text-sm font-semibold text-grade-a-text">✓ Correto!</span>
               </div>
             ) : (
-              <div className="rounded-lg bg-grade-b-bg border border-grade-b-text/30 px-4 py-3 mb-6">
-                <span className="text-sm font-semibold text-grade-b-text">
+              <div className="rounded-lg bg-grade-d-bg border-l-[3px] border-grade-d-text px-4 py-3 mb-6">
+                <span className="text-sm font-semibold text-grade-d-text">
                   ✗ A resposta correta era {artigo.resposta_correta}:{" "}
                   {getAltText(correctKey)}
                 </span>
@@ -232,15 +229,15 @@ const Quiz = () => {
                 return (
                   <div
                     key={key}
-                    className={`w-full rounded-lg border px-4 py-3 text-sm ${
+                    className={`w-full rounded-md border-[1.5px] px-4 py-3 text-[0.9rem] ${
                       isCorrect
-                        ? "border-primary/50 bg-primary/10 text-foreground"
+                        ? "border-grade-a-text bg-grade-a-bg text-foreground"
                         : isWrong
-                        ? "border-destructive/50 bg-destructive/10 text-foreground"
-                        : "border-border bg-card text-foreground/60"
+                        ? "border-grade-d-text bg-grade-d-bg text-foreground"
+                        : "border-[hsl(var(--border))] bg-card text-foreground/60"
                     }`}
                   >
-                    <span className="font-mono font-semibold mr-2 text-muted-foreground">
+                    <span className="font-mono text-muted-foreground mr-2">
                       {letterLabels[i]}.
                     </span>
                     {text}
@@ -250,24 +247,22 @@ const Quiz = () => {
             </div>
 
             {/* Feedback text */}
-            <div className="rounded-lg border border-border bg-card p-5 mb-6">
-              <p className="text-sm leading-relaxed text-foreground/90">
+            <div className={`rounded-lg bg-surface-secondary px-5 py-4 mb-6 border-l-[3px] ${acertou ? 'border-grade-a-text' : 'border-grade-d-text'}`}>
+              <p className="text-[0.9rem] leading-[1.7] text-foreground/90">
                 {artigo.feedback_quiz}
               </p>
             </div>
 
-            {/* Streak display - only if >= 3 */}
+            {/* Streak display */}
             {streakAtual !== null && streakAtual >= 3 && (
-              <div className={`rounded-lg border px-5 py-4 mb-6 text-center ${
-                streakAtual === 7
-                  ? "border-emerald-500/50 bg-emerald-950/40"
-                  : "border-emerald-700/30 bg-emerald-950/20"
+              <div className={`rounded-md border border-[hsl(var(--border))] bg-surface-secondary px-4 py-3 mb-6 text-center ${
+                streakAtual === 7 ? "border-primary" : ""
               }`}>
-                <div className={`font-bold text-foreground ${streakAtual === 7 ? "text-2xl mb-1" : "text-lg"}`}>
+                <div className={`font-medium text-foreground ${streakAtual === 7 ? "text-lg font-serif italic mb-1" : ""}`}>
                   🔥 {streakAtual === 7 ? "7 dias — uma semana de atualização contínua em Cardiologia" : `${streakAtual} dias`}
                 </div>
                 {streakAtual !== 7 && (
-                  <p className="text-xs text-emerald-400/80 mt-1">
+                  <p className="text-[0.83rem] text-muted-foreground mt-1">
                     você está atualizado em Cardiologia há {streakAtual} dias consecutivos
                   </p>
                 )}
@@ -277,7 +272,7 @@ const Quiz = () => {
             {/* Soft wall / saved state */}
             {saved ? (
               <div className="text-center space-y-4">
-                <p className="text-sm text-primary font-medium">
+                <p className="text-sm text-grade-a-text font-medium">
                   ✓ Progresso salvo! Lembrete de revisão agendado para daqui 7 dias.
                 </p>
                 <Link
@@ -297,30 +292,29 @@ const Quiz = () => {
                 </Link>
               </div>
             ) : user ? (
-              // User is already logged in, auto-saving via useEffect
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">
                   {saving ? "Salvando progresso..." : ""}
                 </p>
               </div>
             ) : (
-              <div className="rounded-lg border border-primary/20 bg-card p-6 text-center">
-                <h3 className="text-lg font-semibold text-foreground mb-1">
+              <div className="rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card p-6 text-center">
+                <h3 className="text-base font-semibold text-foreground mb-1">
                   Salve seu progresso
                 </h3>
-                <p className="text-sm text-muted-foreground mb-5">
+                <p className="text-[0.87rem] text-muted-foreground mb-5">
                   Crie sua conta gratuita para acompanhar sua evolução e receber lembretes de revisão no momento certo
                 </p>
                 <button
                   onClick={handleGoogleLogin}
                   disabled={saving}
-                  className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 mb-3"
+                  className="w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 mb-3"
                 >
                   {saving ? "Entrando..." : "Entrar com Google →"}
                 </button>
                 <button
                   onClick={() => setDismissed(true)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Continuar sem salvar
                 </button>

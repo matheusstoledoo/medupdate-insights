@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,51 +6,74 @@
 
 @layer base {
   :root {
-    --background: 222 47% 7%;
-    --foreground: 210 20% 98%;
+    --background: 40 7% 97%;
+    --foreground: 40 6% 10%;
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 20% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 40 6% 10%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 40 6% 10%;
 
-    --primary: 160 84% 39%;
-    --primary-foreground: 210 20% 98%;
+    --primary: 207 67% 33%;
+    --primary-foreground: 40 7% 97%;
 
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 207 67% 33%;
+    --secondary-foreground: 40 7% 97%;
 
-    --muted: 220 13% 20%;
-    --muted-foreground: 220 9% 66%;
+    --muted: 40 10% 91%;
+    --muted-foreground: 33 3% 53%;
 
-    --accent: 220 13% 20%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 207 40% 51%;
+    --accent-foreground: 40 7% 97%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive: 8 60% 29%;
+    --destructive-foreground: 8 40% 96%;
 
-    --border: 220 13% 20%;
-    --input: 220 13% 20%;
-    --ring: 160 84% 39%;
+    --border: 40 6% 10% / 0.10;
+    --input: 40 6% 10% / 0.10;
+    --ring: 207 67% 33%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    --grade-a-bg: 163 88% 16%;
-    --grade-a-text: 160 77% 67%;
-    --grade-b-bg: 32 92% 18%;
-    --grade-b-text: 48 96% 72%;
-    --grade-c-bg: 220 13% 23%;
-    --grade-c-text: 220 9% 66%;
+    /* GRADE badges */
+    --grade-a-bg: 146 30% 93%;
+    --grade-a-text: 150 52% 23%;
+    --grade-b-bg: 42 95% 95%;
+    --grade-b-text: 36 100% 24%;
+    --grade-c-bg: 40 5% 94%;
+    --grade-c-text: 33 3% 35%;
+    --grade-d-bg: 8 60% 96%;
+    --grade-d-text: 8 48% 29%;
 
-    --sidebar-background: 222 47% 7%;
-    --sidebar-foreground: 220 9% 66%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 220 13% 20%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 220 13% 20%;
-    --sidebar-ring: 160 84% 39%;
+    /* RoB status */
+    --rob-low-bg: 146 30% 93%;
+    --rob-low-text: 150 52% 23%;
+    --rob-warn-bg: 42 95% 95%;
+    --rob-warn-text: 36 100% 24%;
+    --rob-high-bg: 8 60% 96%;
+    --rob-high-text: 8 48% 29%;
+
+    /* Accent extras */
+    --accent-light: 210 50% 95%;
+    --accent-mid: 207 40% 51%;
+
+    /* Surface */
+    --bg-secondary: 40 11% 95%;
+    --bg-tertiary: 37 13% 91%;
+    --bg-inverse: 240 6% 12%;
+
+    /* Divider */
+    --divider: 40 6% 10% / 0.06;
+
+    --sidebar-background: 240 6% 12%;
+    --sidebar-foreground: 33 3% 53%;
+    --sidebar-primary: 207 67% 33%;
+    --sidebar-primary-foreground: 40 7% 97%;
+    --sidebar-accent: 40 10% 91%;
+    --sidebar-accent-foreground: 40 6% 10%;
+    --sidebar-border: 40 6% 10% / 0.10;
+    --sidebar-ring: 207 67% 33%;
   }
 }
 
@@ -66,20 +89,30 @@
 
 @layer components {
   .grade-badge-alto {
-    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+    @apply px-2 py-0.5 rounded text-[0.68rem] font-mono font-medium uppercase tracking-wider;
     background-color: hsl(var(--grade-a-bg));
     color: hsl(var(--grade-a-text));
   }
 
   .grade-badge-moderado {
-    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+    @apply px-2 py-0.5 rounded text-[0.68rem] font-mono font-medium uppercase tracking-wider;
     background-color: hsl(var(--grade-b-bg));
     color: hsl(var(--grade-b-text));
   }
 
   .grade-badge-baixo {
-    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+    @apply px-2 py-0.5 rounded text-[0.68rem] font-mono font-medium uppercase tracking-wider;
     background-color: hsl(var(--grade-c-bg));
     color: hsl(var(--grade-c-text));
+  }
+
+  .grade-badge-muito-baixo {
+    @apply px-2 py-0.5 rounded text-[0.68rem] font-mono font-medium uppercase tracking-wider;
+    background-color: hsl(var(--grade-d-bg));
+    color: hsl(var(--grade-d-text));
+  }
+
+  .font-serif {
+    font-family: 'Lora', Georgia, serif;
   }
 }

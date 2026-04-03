@@ -69,18 +69,18 @@ function parseViesesDetalhados(texto: string): RobDomain[] {
 
 const getDomainIcon = (status: DomainStatus) => {
   switch (status) {
-    case "baixo": return <CheckCircle className="h-4 w-4 shrink-0 text-primary" />;
+    case "baixo": return <CheckCircle className="h-4 w-4 shrink-0 text-grade-a-text" />;
     case "preocupações": return <AlertTriangle className="h-4 w-4 shrink-0 text-grade-b-text" />;
-    case "alto": return <XCircle className="h-4 w-4 shrink-0 text-destructive" />;
+    case "alto": return <XCircle className="h-4 w-4 shrink-0 text-grade-d-text" />;
     default: return <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground" />;
   }
 };
 
 const RobIcon = ({ resultado }: { resultado: string }) => {
   const lower = resultado?.toLowerCase() || "";
-  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-primary" />;
+  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-grade-a-text" />;
   if (lower.includes("preocupações") || lower.includes("algumas")) return <AlertTriangle className="h-4 w-4 text-grade-b-text" />;
-  return <XCircle className="h-4 w-4 text-destructive" />;
+  return <XCircle className="h-4 w-4 text-grade-d-text" />;
 };
 
 // --- Quiz helpers ---
@@ -321,7 +321,7 @@ const UploadArtigo = () => {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Analisar um artigo</h1>
+          <h1 className="font-serif text-2xl font-semibold text-foreground mb-2" style={{ letterSpacing: '-0.02em' }}>Analisar um artigo</h1>
           <p className="text-sm text-muted-foreground">
             Faça upload de um PDF ou cole o texto do artigo
           </p>
@@ -337,8 +337,8 @@ const UploadArtigo = () => {
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
                 dragOver
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground/50"
+                  ? "border-primary bg-accent-light"
+                  : "border-[hsl(var(--border))] bg-card hover:border-[hsl(40_6%_10%/0.18)]"
               }`}
             >
               <input
@@ -362,7 +362,7 @@ const UploadArtigo = () => {
 
             {/* File selected preview */}
             {arquivo && (
-              <div className="mt-4 rounded-lg border border-border bg-card p-4">
+              <div className="mt-4 rounded-lg border border-[hsl(var(--border))] bg-card p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <FileText className="h-5 w-5 text-primary" />
                   <div className="flex-1 min-w-0">
@@ -402,7 +402,7 @@ const UploadArtigo = () => {
                     <button
                       onClick={handleAnalyze}
                       disabled={textoExtraido.length < 100}
-                      className="mt-4 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      className="mt-4 w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                     >
                       Analisar →
                     </button>
@@ -426,7 +426,7 @@ const UploadArtigo = () => {
               value={textoColado}
               onChange={(e) => setTextoColado(e.target.value)}
               placeholder="Cole aqui o texto do artigo — abstract, métodos, resultados, discussão..."
-              className="w-full h-64 rounded-lg border border-border bg-card p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              className="w-full h-64 rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-primary resize-none"
             />
             <div className="flex items-center justify-between mt-2">
               <p className="text-xs text-muted-foreground">
@@ -442,7 +442,7 @@ const UploadArtigo = () => {
             <button
               onClick={handleAnalyze}
               disabled={textoColado.trim().length < 100}
-              className="mt-4 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="mt-4 w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               Analisar →
             </button>
@@ -498,7 +498,7 @@ const UploadArtigo = () => {
         <GradeBadge grade={artigo.grade || ""} size="lg" />
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground leading-tight mb-4">
+      <h1 className="font-serif text-[1.55rem] font-bold text-foreground leading-tight mb-4" style={{ letterSpacing: '-0.025em' }}>
         {artigo.titulo}
       </h1>
 

@@ -316,13 +316,13 @@ const BuscaAtiva = () => {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && executarBusca()}
-            className="w-full rounded-lg border border-border bg-card pl-12 pr-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/50"
+            className="w-full rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card pl-12 pr-4 py-3.5 text-[0.97rem] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-primary"
           />
         </div>
         <button
           onClick={() => executarBusca()}
           disabled={normalizando || buscando || !texto.trim()}
-          className="rounded-lg bg-secondary px-6 py-3.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+          className="rounded-md bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
         >
           {normalizando || buscando ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -337,20 +337,20 @@ const BuscaAtiva = () => {
       <div className="flex gap-2">
         <button
           onClick={() => setFontes((f) => ({ ...f, pubmed: !f.pubmed }))}
-          className={`rounded-full px-4 py-1.5 text-xs font-medium border transition-colors ${
+          className={`rounded px-4 py-1.5 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
             fontes.pubmed
-              ? "bg-secondary/15 text-secondary border-secondary/30"
-              : "bg-transparent text-muted-foreground border-border"
+              ? "bg-accent-light text-primary border-primary/20"
+              : "bg-transparent text-muted-foreground border-[hsl(var(--border))]"
           }`}
         >
           PubMed
         </button>
         <button
           onClick={() => setFontes((f) => ({ ...f, cochrane: !f.cochrane }))}
-          className={`rounded-full px-4 py-1.5 text-xs font-medium border transition-colors ${
+          className={`rounded px-4 py-1.5 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
             fontes.cochrane
-              ? "bg-secondary/15 text-secondary border-secondary/30"
-              : "bg-transparent text-muted-foreground border-border"
+              ? "bg-accent-light text-primary border-primary/20"
+              : "bg-transparent text-muted-foreground border-[hsl(var(--border))]"
           }`}
         >
           Cochrane
@@ -371,10 +371,10 @@ const BuscaAtiva = () => {
                 <button
                   key={t}
                   onClick={() => setTipoEstudo(t)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                  className={`rounded px-3 py-1 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
                     tipoEstudo === t
-                      ? "bg-secondary text-secondary-foreground border-secondary"
-                      : "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-transparent text-muted-foreground border-[hsl(var(--border))] hover:text-foreground"
                   }`}
                 >
                   {tipoEstudoLabels[t]}
@@ -389,10 +389,10 @@ const BuscaAtiva = () => {
                 <button
                   key={p}
                   onClick={() => setPeriodo(p)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                  className={`rounded px-3 py-1 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
                     periodo === p
-                      ? "bg-secondary text-secondary-foreground border-secondary"
-                      : "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-transparent text-muted-foreground border-[hsl(var(--border))] hover:text-foreground"
                   }`}
                 >
                   {periodoLabels[p]}
@@ -425,9 +425,9 @@ const BuscaAtiva = () => {
 
       {/* Normalizing indicator */}
       {normalizando && (
-        <div className="flex items-center gap-3 rounded-lg border border-secondary/20 bg-secondary/5 p-4">
-          <Loader2 className="h-5 w-5 animate-spin text-secondary" />
-          <span className="text-sm text-secondary">Traduzindo sua busca para linguagem técnica...</span>
+        <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-accent-light p-4">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-sm text-primary">Traduzindo sua busca para linguagem técnica...</span>
         </div>
       )}
 
@@ -445,7 +445,7 @@ const BuscaAtiva = () => {
           <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             {queryAberta ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             Query utilizada
-            <span className="text-xs text-secondary">({normalizacao.tipo_busca})</span>
+            <span className="text-xs text-primary">({normalizacao.tipo_busca})</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-4 rounded-lg border border-border bg-card p-4">
             {/* Concepts display */}
@@ -472,7 +472,7 @@ const BuscaAtiva = () => {
             {!normalizacao.conceitos && normalizacao.termos_identificados && (
               <div className="flex flex-wrap gap-1.5">
                 {normalizacao.termos_identificados.map((t, i) => (
-                  <span key={i} className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-[10px] font-medium text-secondary border border-secondary/20">
+                  <span key={i} className="rounded px-2.5 py-0.5 text-[10px] font-medium text-primary bg-accent-light border border-primary/20">
                     {t}
                   </span>
                 ))}
@@ -534,20 +534,21 @@ const BuscaAtiva = () => {
                   {resultados.map((r) => (
                     <article
                       key={r.pmid}
-                      className={`rounded-lg border bg-card p-4 transition-colors ${
-                        r.analisando ? "border-secondary/40 bg-secondary/5" : "border-border hover:border-secondary/30"
+                      className={`rounded-lg border bg-card p-4 transition-all ${
+                        r.analisando ? "border-primary/40 bg-accent-light" : "border-[hsl(var(--border))] hover:border-[hsl(40_6%_10%/0.18)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)]"
                       }`}
+                      style={{ boxShadow: r.analisando ? undefined : '0 1px 3px rgba(0,0,0,0.06)' }}
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="text-sm font-semibold text-foreground leading-snug flex-1">
+                        <h3 className="font-serif text-[0.95rem] font-semibold text-foreground leading-snug flex-1" style={{ letterSpacing: '-0.01em' }}>
                           {r.titulo}
                         </h3>
                         {r.artigoLocal ? (
-                          <span className="shrink-0 rounded-full bg-primary/15 text-primary border border-primary/30 px-2.5 py-0.5 text-[10px] font-medium">
+                          <span className="shrink-0 rounded px-2.5 py-0.5 text-[10px] font-medium bg-grade-a-bg text-grade-a-text">
                             Análise disponível
                           </span>
                         ) : (
-                          <span className="shrink-0 rounded-full bg-secondary/15 text-secondary border border-secondary/30 px-2.5 py-0.5 text-[10px] font-medium">
+                          <span className="shrink-0 rounded px-2.5 py-0.5 text-[10px] font-medium bg-accent-light text-primary">
                             Novo
                           </span>
                         )}
@@ -569,16 +570,16 @@ const BuscaAtiva = () => {
 
                       {/* Analyzing state */}
                       {r.analisando && (
-                        <div className="flex items-center gap-2 mb-3 rounded-md bg-secondary/10 px-3 py-2">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-secondary" />
-                          <span className="text-xs text-secondary">{r.statusAnalise || 'Analisando...'}</span>
+                        <div className="flex items-center gap-2 mb-3 rounded-md bg-accent-light px-3 py-2">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                          <span className="text-xs text-primary">{r.statusAnalise || 'Analisando...'}</span>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2 font-mono text-[0.72rem] text-muted-foreground">
                           {r.artigoLocal?.grade && <GradeBadge grade={r.artigoLocal.grade} />}
-                          <span className="font-mono uppercase tracking-wider">{r.journal}</span>
+                          <span className="uppercase tracking-widest">{r.journal}</span>
                           {r.ano && (
                             <>
                               <span>·</span>
@@ -610,7 +611,7 @@ const BuscaAtiva = () => {
                               {analisesRealizadas < 3 ? (
                                 <button
                                   onClick={() => analisarArtigo(r.pmid)}
-                                  className="inline-flex items-center gap-1.5 rounded-md bg-secondary/10 px-3 py-1.5 text-xs font-medium text-secondary hover:bg-secondary/20 transition-colors border border-secondary/20"
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-accent-light px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-primary/20"
                                 >
                                   <Sparkles className="h-3 w-3" />
                                   Analisar este artigo
@@ -636,7 +637,7 @@ const BuscaAtiva = () => {
 
                   {/* Analysis limit warning */}
                   {analisesRealizadas >= 3 && (
-                    <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-3 text-xs text-secondary flex items-center gap-2">
+                    <div className="rounded-lg border border-primary/20 bg-accent-light p-3 text-xs text-primary flex items-center gap-2">
                       <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                       Limite de 3 análises por busca atingido. Inicie uma nova busca para analisar mais artigos.
                     </div>
