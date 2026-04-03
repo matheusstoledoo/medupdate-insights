@@ -571,7 +571,7 @@ const BuscaAtiva = () => {
                       {r.analisando && (
                         <div className="flex items-center gap-2 mb-3 rounded-md bg-secondary/10 px-3 py-2">
                           <Loader2 className="h-3.5 w-3.5 animate-spin text-secondary" />
-                          <span className="text-xs text-secondary">Analisando com IA... (pode levar 20 segundos)</span>
+                          <span className="text-xs text-secondary">{r.statusAnalise || 'Analisando...'}</span>
                         </div>
                       )}
 
