@@ -33,6 +33,7 @@ interface PubMedResult {
   link: string;
   artigoLocal?: { id: string; grade?: string | null; resumo_pt?: string | null } | null;
   analisando?: boolean;
+  statusAnalise?: string;
 }
 
 interface Conceito {
