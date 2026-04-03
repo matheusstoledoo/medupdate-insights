@@ -87,14 +87,20 @@ const Artigo = () => {
           {artigo.link_original && (
             <>
               <span>·</span>
-              <a
-                href={artigo.link_original}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => {
+                  const a = document.createElement("a");
+                  a.href = artigo.link_original!;
+                  a.target = "_blank";
+                  a.rel = "noopener noreferrer";
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}
                 className="inline-flex items-center gap-1 text-secondary hover:underline"
               >
-                Artigo original <ExternalLink className="h-3 w-3" />
-              </a>
+                Ver artigo original <ExternalLink className="h-3 w-3" />
+              </button>
             </>
           )}
         </div>
