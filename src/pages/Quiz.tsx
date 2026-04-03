@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ const letterLabels = ["A", "B", "C", "D"];
 
 const Quiz = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,6 +35,57 @@ const Quiz = () => {
     },
     enabled: !!id,
   });
+
+  const updateStreak = async (userId: string) => {
+    try {
+      await supabase.rpc('atualizar_streak', { p_usuario_id: userId });
+      const { data: streakData } = await supabase
+        .from('streaks')
+        .select('streak_atual, total_questoes_respondidas')
+        .eq('usuario_id', userId)
+        .maybeSingle();
+      if (streakData) {
+        setStreakAtual(streakData.streak_atual);
+      }
+    } catch (e) {
+      console.error('Erro ao atualizar streak:', e);
+    }
+  };
+
+  const saveProgress = async (userId: string, userEmail: string | undefined, acertouValue: boolean) => {
+    if (!artigo) return;
+    await supabase.from("usuarios").upsert({
+      id: userId,
+      email: userEmail,
+    }, { onConflict: "id" });
+
+    await supabase.from("progresso").insert({
+      usuario_id: userId,
+      artigo_id: artigo.id,
+      respondeu: true,
+      acertou: acertouValue,
+      data_resposta: new Date().toISOString(),
+      proxima_revisao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    });
+
+    await updateStreak(userId);
+    setSaved(true);
+  };
+
+  // Auto-save progress if user is already logged in when they confirm
+  // or if they return from OAuth redirect with an existing session
+  useEffect(() => {
+    if (user && confirmed && !saved && !dismissed && artigo) {
+      setSaving(true);
+      const correctKeyLocal = letterMap[artigo.resposta_correta?.toUpperCase() || ""];
+      const acertouLocal = selected === correctKeyLocal;
+      saveProgress(user.id, user.email, acertouLocal).then(() => {
+        setSaving(false);
+        toast.success("Progresso salvo!");
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, confirmed, saved, dismissed, artigo]);
 
   if (isLoading) {
     return (
@@ -63,26 +116,8 @@ const Quiz = () => {
     return (artigo as any)[key] as string;
   };
 
-  const updateStreak = async (userId: string) => {
-    try {
-      await supabase.rpc('atualizar_streak', { p_usuario_id: userId });
-      const { data: streakData } = await supabase
-        .from('streaks')
-        .select('streak_atual, total_questoes_respondidas')
-        .eq('usuario_id', userId)
-        .maybeSingle();
-      if (streakData) {
-        setStreakAtual(streakData.streak_atual);
-      }
-    } catch (e) {
-      console.error('Erro ao atualizar streak:', e);
-    }
-  };
-
   const handleConfirm = async () => {
     setConfirmed(true);
-    // Update streak if user is logged in
-    const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await updateStreak(user.id);
     }
@@ -105,61 +140,11 @@ const Quiz = () => {
         return;
       }
 
-      // Save progress after login
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Upsert user
-        await supabase.from("usuarios").upsert({
-          id: user.id,
-          email: user.email,
-        }, { onConflict: "id" });
-
-        // Save progress
-        await supabase.from("progresso").insert({
-          usuario_id: user.id,
-          artigo_id: artigo.id,
-          respondeu: true,
-          acertou,
-          data_resposta: new Date().toISOString(),
-          proxima_revisao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        });
-
-        await updateStreak(user.id);
-
-        setSaved(true);
-        toast.success("Progresso salvo! Lembrete de revisão agendado para daqui 7 dias.");
-      }
+      // After OAuth without redirect (popup flow), session is set via AuthContext
+      // The useEffect above will auto-save progress
     } catch (e) {
       toast.error("Erro ao salvar progresso");
-    } finally {
       setSaving(false);
-    }
-  };
-
-  // Check if user returned from OAuth redirect
-  const checkExistingSession = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user && confirmed && !saved && !dismissed) {
-      setSaving(true);
-      await supabase.from("usuarios").upsert({
-        id: user.id,
-        email: user.email,
-      }, { onConflict: "id" });
-
-      await supabase.from("progresso").insert({
-        usuario_id: user.id,
-        artigo_id: artigo.id,
-        respondeu: true,
-        acertou,
-        data_resposta: new Date().toISOString(),
-        proxima_revisao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      });
-
-      await updateStreak(user.id);
-
-      setSaved(true);
-      setSaving(false);
-      toast.success("Progresso salvo!");
     }
   };
 
@@ -310,6 +295,13 @@ const Quiz = () => {
                 >
                   ← Voltar ao feed
                 </Link>
+              </div>
+            ) : user ? (
+              // User is already logged in, auto-saving via useEffect
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  {saving ? "Salvando progresso..." : ""}
+                </p>
               </div>
             ) : (
               <div className="rounded-lg border border-primary/20 bg-card p-6 text-center">
