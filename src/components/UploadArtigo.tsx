@@ -442,7 +442,7 @@ const UploadArtigo = () => {
             <button
               onClick={handleAnalyze}
               disabled={textoColado.trim().length < 100}
-              className="mt-4 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="mt-4 w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               Analisar →
             </button>
