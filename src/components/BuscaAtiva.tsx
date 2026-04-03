@@ -472,7 +472,7 @@ const BuscaAtiva = () => {
             {!normalizacao.conceitos && normalizacao.termos_identificados && (
               <div className="flex flex-wrap gap-1.5">
                 {normalizacao.termos_identificados.map((t, i) => (
-                  <span key={i} className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-[10px] font-medium text-secondary border border-secondary/20">
+                  <span key={i} className="rounded px-2.5 py-0.5 text-[10px] font-medium text-primary bg-accent-light border border-primary/20">
                     {t}
                   </span>
                 ))}
