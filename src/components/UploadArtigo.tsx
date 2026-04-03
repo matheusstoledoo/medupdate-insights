@@ -498,7 +498,7 @@ const UploadArtigo = () => {
         <GradeBadge grade={artigo.grade || ""} size="lg" />
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground leading-tight mb-4">
+      <h1 className="font-serif text-[1.55rem] font-bold text-foreground leading-tight mb-4" style={{ letterSpacing: '-0.025em' }}>
         {artigo.titulo}
       </h1>
 
