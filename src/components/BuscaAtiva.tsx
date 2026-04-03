@@ -316,7 +316,7 @@ const BuscaAtiva = () => {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && executarBusca()}
-            className="w-full rounded-lg border border-border bg-card pl-12 pr-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/50"
+            className="w-full rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card pl-12 pr-4 py-3.5 text-[0.97rem] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-primary"
           />
         </div>
         <button
