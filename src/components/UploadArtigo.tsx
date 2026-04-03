@@ -337,8 +337,8 @@ const UploadArtigo = () => {
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
                 dragOver
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground/50"
+                  ? "border-primary bg-accent-light"
+                  : "border-[hsl(var(--border))] bg-card hover:border-[hsl(40_6%_10%/0.18)]"
               }`}
             >
               <input
