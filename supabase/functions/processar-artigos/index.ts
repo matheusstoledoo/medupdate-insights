@@ -137,7 +137,7 @@ async function obterTextoCompleto(pmid: string, abstractText: string): Promise<T
   try {
     console.log(`[ELINK] Buscando links gratuitos para PMID ${pmid}`);
     const elinkResp = await fetch(
-      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=${pmid}&cmd=llinkslib&retmode=xml&email=medupdate@app.com`,
+      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=${pmid}&cmd=llinks&retmode=xml&email=medupdate@app.com`,
       { signal: AbortSignal.timeout(10000) }
     );
     if (elinkResp.ok) {
