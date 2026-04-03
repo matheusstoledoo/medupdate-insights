@@ -337,20 +337,20 @@ const BuscaAtiva = () => {
       <div className="flex gap-2">
         <button
           onClick={() => setFontes((f) => ({ ...f, pubmed: !f.pubmed }))}
-          className={`rounded-full px-4 py-1.5 text-xs font-medium border transition-colors ${
+          className={`rounded px-4 py-1.5 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
             fontes.pubmed
-              ? "bg-secondary/15 text-secondary border-secondary/30"
-              : "bg-transparent text-muted-foreground border-border"
+              ? "bg-accent-light text-primary border-primary/20"
+              : "bg-transparent text-muted-foreground border-[hsl(var(--border))]"
           }`}
         >
           PubMed
         </button>
         <button
           onClick={() => setFontes((f) => ({ ...f, cochrane: !f.cochrane }))}
-          className={`rounded-full px-4 py-1.5 text-xs font-medium border transition-colors ${
+          className={`rounded px-4 py-1.5 text-[0.72rem] font-medium uppercase tracking-wide border transition-colors ${
             fontes.cochrane
-              ? "bg-secondary/15 text-secondary border-secondary/30"
-              : "bg-transparent text-muted-foreground border-border"
+              ? "bg-accent-light text-primary border-primary/20"
+              : "bg-transparent text-muted-foreground border-[hsl(var(--border))]"
           }`}
         >
           Cochrane
