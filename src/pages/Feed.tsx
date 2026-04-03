@@ -66,31 +66,30 @@ const Feed = () => {
   const [filtro, setFiltro] = useState<Filtro>("semana");
   const [artigos, setArtigos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [fallbackMsg, setFallbackMsg] = useState<string | null>(null);
+  const [mensagemVazio, setMensagemVazio] = useState<string | null>(null);
 
   useEffect(() => {
-    const buscarArtigos = async () => {
+    const buscar = async () => {
       setIsLoading(true);
-      setFallbackMsg(null);
-
-      const buildQuery = (dataCorte: string | null) => {
-        let q = supabase
-          .from("artigos")
-          .select("*")
-          .order("data_publicacao", { ascending: false })
-          .order("score_relevancia", { ascending: false })
-          .limit(20);
-        if (search.trim()) {
-          q = q.ilike("titulo", `%${search.trim()}%`);
-        }
-        if (dataCorte) {
-          q = q.gte("data_publicacao", dataCorte);
-        }
-        return q;
-      };
+      setMensagemVazio(null);
 
       const dataCorte = getDataCorte(filtro);
-      const { data, error } = await buildQuery(dataCorte);
+
+      let query = supabase
+        .from("artigos")
+        .select("*")
+        .order("data_publicacao", { ascending: false })
+        .order("score_relevancia", { ascending: false })
+        .limit(20);
+
+      if (search.trim()) {
+        query = query.ilike("titulo", `%${search.trim()}%`);
+      }
+      if (dataCorte) {
+        query = query.gte("data_publicacao", dataCorte);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Erro ao buscar artigos:", error);
@@ -98,30 +97,14 @@ const Feed = () => {
         return;
       }
 
-      // Auto-fallback from semana → mes → todos
-      if (filtro === "semana" && (!data || data.length === 0) && !search.trim()) {
-        const mesCorte = getDataCorte("mes");
-        const { data: mesData } = await buildQuery(mesCorte);
-
-        if (mesData && mesData.length > 0) {
-          setFallbackMsg("Nenhum artigo novo esta semana — exibindo o mês atual.");
-          setArtigos(mesData);
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: allData } = await buildQuery(null);
-        setFallbackMsg("Nenhum artigo novo este mês — exibindo todos.");
-        setArtigos(allData || []);
-        setIsLoading(false);
-        return;
-      }
-
       setArtigos(data || []);
+      if ((!data || data.length === 0) && filtro !== "todos") {
+        setMensagemVazio("Nenhum artigo encontrado para este período.");
+      }
       setIsLoading(false);
     };
 
-    buscarArtigos();
+    buscar();
   }, [filtro, search]);
 
   const now = new Date();
@@ -152,8 +135,16 @@ const Feed = () => {
           ))}
         </div>
 
-        {fallbackMsg && (
-          <p className="text-sm text-muted-foreground mb-4 italic">{fallbackMsg}</p>
+        {mensagemVazio && (
+          <div className="text-center py-2 mb-4">
+            <p className="text-sm text-muted-foreground italic">{mensagemVazio}</p>
+            <button
+              onClick={() => setFiltro("todos")}
+              className="text-sm text-primary hover:underline mt-1"
+            >
+              Ver todos os artigos →
+            </button>
+          </div>
         )}
 
         <div className="relative mt-2 mb-8">
