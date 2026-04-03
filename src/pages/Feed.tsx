@@ -142,9 +142,21 @@ const Feed = () => {
           >
             Busca Ativa
           </button>
+          <button
+            onClick={() => setModo("upload")}
+            className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
+              modo === "upload"
+                ? "bg-secondary text-secondary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Upload
+          </button>
         </div>
 
-        {modo === "busca" ? (
+        {modo === "upload" ? (
+          <UploadArtigo />
+        ) : modo === "busca" ? (
           <BuscaAtiva />
         ) : (
           <>
