@@ -35,7 +35,7 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header streakAtual={streakAtual} />
       <main className="container py-8">
         <h1 className="text-2xl font-semibold text-foreground mb-1">
           Cardiologia · {weekLabel}
