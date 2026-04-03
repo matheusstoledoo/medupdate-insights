@@ -426,7 +426,7 @@ const UploadArtigo = () => {
               value={textoColado}
               onChange={(e) => setTextoColado(e.target.value)}
               placeholder="Cole aqui o texto do artigo — abstract, métodos, resultados, discussão..."
-              className="w-full h-64 rounded-lg border border-border bg-card p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              className="w-full h-64 rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-primary resize-none"
             />
             <div className="flex items-center justify-between mt-2">
               <p className="text-xs text-muted-foreground">
