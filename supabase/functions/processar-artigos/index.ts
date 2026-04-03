@@ -7,6 +7,55 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function buscarDOI(pmid: string): Promise<string | null> {
+  try {
+    const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const xml = await res.text();
+    const match = xml.match(/<ArticleId IdType="doi">([^<]+)<\/ArticleId>/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+async function buscarPMCID(pmid: string): Promise<string | null> {
+  try {
+    const url = `https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids=${pmid}&format=json`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.records?.[0]?.pmcid || null;
+  } catch {
+    return null;
+  }
+}
+
+async function buscarTextoCompletoPMC(pmcid: string): Promise<string | null> {
+  try {
+    const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const text = await res.text();
+    return text && text.trim().length > 100 ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+async function buscarUnpaywall(doi: string): Promise<string | null> {
+  try {
+    const url = `https://api.unpaywall.org/v2/${encodeURIComponent(doi)}?email=medupdate@app.com`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.best_oa_location?.url_for_pdf || data?.best_oa_location?.url || null;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,7 +76,6 @@ serve(async (req) => {
   const resultado = { processados: 0, pulados: 0, erros: [] as string[] };
 
   try {
-    // PASSO 1 — Buscar PMIDs do PubMed
     const searchUrl =
       "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=cardiology[MeSH]+AND+randomized+controlled+trial[pt]&retmax=5&retmode=json&sort=date";
     const searchRes = await fetch(searchUrl);
@@ -43,10 +91,8 @@ serve(async (req) => {
       });
     }
 
-    // PASSO 2-4 — Processar cada PMID
     for (const pmid of pmids) {
       try {
-        // Verificar duplicata
         const { data: existing } = await supabase
           .from("artigos")
           .select("id")
@@ -72,7 +118,68 @@ serve(async (req) => {
           continue;
         }
 
-        // PASSO 3 — Claude
+        // PASSO 1 & 2 — Buscar texto completo via PMC e Unpaywall
+        let textoCompleto: string | null = null;
+        let urlTextoCompleto: string | null = null;
+        let temTextoCompleto = false;
+
+        // Tentar PMC primeiro
+        const pmcid = await buscarPMCID(pmid);
+        if (pmcid) {
+          const pmcText = await buscarTextoCompletoPMC(pmcid);
+          if (pmcText) {
+            textoCompleto = pmcText;
+            urlTextoCompleto = `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcid}/`;
+            temTextoCompleto = true;
+          }
+        }
+
+        // Se não achou no PMC, tentar Unpaywall via DOI
+        if (!textoCompleto) {
+          const doi = await buscarDOI(pmid);
+          if (doi) {
+            const unpUrl = await buscarUnpaywall(doi);
+            if (unpUrl) {
+              urlTextoCompleto = unpUrl;
+              // Tentar baixar o texto (pode ser HTML)
+              try {
+                const fullRes = await fetch(unpUrl, {
+                  headers: { "Accept": "text/plain, text/html" },
+                  redirect: "follow",
+                });
+                if (fullRes.ok) {
+                  const contentType = fullRes.headers.get("content-type") || "";
+                  if (!contentType.includes("pdf")) {
+                    const fullText = await fullRes.text();
+                    if (fullText && fullText.trim().length > 200) {
+                      textoCompleto = fullText;
+                      temTextoCompleto = true;
+                    }
+                  } else {
+                    await fullRes.body?.cancel();
+                  }
+                } else {
+                  await fullRes.body?.cancel();
+                }
+              } catch {
+                // Não conseguiu baixar, segue com abstract
+              }
+            }
+          }
+        }
+
+        // PASSO 3 — Montar prompt adequado
+        let conteudoParaClaude: string;
+        let instrucaoExtra: string;
+
+        if (temTextoCompleto && textoCompleto) {
+          conteudoParaClaude = textoCompleto.substring(0, 8000);
+          instrucaoExtra = `Você tem acesso ao texto completo deste artigo. Faça uma análise metodológica detalhada incluindo: tamanho amostral, método de randomização, tipo de cegamento, análise por intenção de tratar, desfechos primários e secundários, limitações declaradas pelos autores, e conflitos de interesse reportados.`;
+        } else {
+          conteudoParaClaude = abstractText;
+          instrucaoExtra = `Você tem apenas o abstract. Faça a melhor análise possível mas sinalize explicitamente quais domínios do RoB 2 não puderam ser avaliados por falta de informação no abstract.`;
+        }
+
         const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
@@ -82,11 +189,11 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: "claude-sonnet-4-20250514",
-            max_tokens: 2000,
+            max_tokens: 2500,
             messages: [
               {
                 role: "user",
-                content: `Você é especialista em epidemiologia clínica. Analise este artigo médico e retorne SOMENTE um JSON válido, sem texto antes ou depois, sem markdown:\n{\n  "titulo": "título em português",\n  "journal": "nome do journal",\n  "ano": 2024,\n  "resumo_pt": "3 frases em português para médicos especialistas",\n  "tipo_estudo": "tipo do estudo",\n  "grade": "Alto, Moderado, Baixo ou Muito baixo",\n  "grade_justificativa": "uma frase",\n  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",\n  "analise_metodologica": "3-4 frases sobre metodologia",\n  "contexto_vs_anterior": "como este artigo se relaciona com o que já se sabia",\n  "questao": "caso clínico de 2-3 frases para quiz",\n  "alt_a": "alternativa A",\n  "alt_b": "alternativa B",\n  "alt_c": "alternativa C",\n  "alt_d": "alternativa D",\n  "resposta_correta": "A, B, C ou D",\n  "feedback_quiz": "2-3 frases explicando a resposta correta"\n}\n\nArtigo:\n${abstractText}`,
+                content: `Você é especialista em epidemiologia clínica. ${instrucaoExtra}\n\nAnalise este artigo médico e retorne SOMENTE um JSON válido, sem texto antes ou depois, sem markdown:\n{\n  "titulo": "título em português",\n  "journal": "nome do journal",\n  "ano": 2024,\n  "resumo_pt": "3 frases em português para médicos especialistas",\n  "tipo_estudo": "tipo do estudo",\n  "grade": "Alto, Moderado, Baixo ou Muito baixo",\n  "grade_justificativa": "uma frase",\n  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",\n  "analise_metodologica": "3-4 frases sobre metodologia",\n  "contexto_vs_anterior": "como este artigo se relaciona com o que já se sabia",\n  "vieses_detalhados": "lista detalhada dos vieses identificados por domínio RoB 2",\n  "limitacoes_autores": "limitações declaradas pelos próprios autores do artigo",\n  "conflitos_interesse": "conflitos de interesse reportados no artigo",\n  "questao": "caso clínico de 2-3 frases para quiz",\n  "alt_a": "alternativa A",\n  "alt_b": "alternativa B",\n  "alt_c": "alternativa C",\n  "alt_d": "alternativa D",\n  "resposta_correta": "A, B, C ou D",\n  "feedback_quiz": "2-3 frases explicando a resposta correta"\n}\n\nArtigo:\n${conteudoParaClaude}`,
               },
             ],
           }),
@@ -103,7 +210,6 @@ serve(async (req) => {
 
         let parsed: Record<string, any>;
         try {
-          // Try to extract JSON even if wrapped in markdown
           const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
           if (!jsonMatch) throw new Error("No JSON object found");
           parsed = JSON.parse(jsonMatch[0]);
@@ -112,7 +218,6 @@ serve(async (req) => {
           continue;
         }
 
-        // PASSO 4 — Inserir
         const ano = parsed.ano ?? new Date().getFullYear();
         const scoreRelevancia = (ano - 2020) * 10 + 50;
 
@@ -128,6 +233,9 @@ serve(async (req) => {
           rob_resultado: parsed.rob_resultado || null,
           analise_metodologica: parsed.analise_metodologica || null,
           contexto_vs_anterior: parsed.contexto_vs_anterior || null,
+          vieses_detalhados: parsed.vieses_detalhados || null,
+          limitacoes_autores: parsed.limitacoes_autores || null,
+          conflitos_interesse: parsed.conflitos_interesse || null,
           questao: parsed.questao || null,
           alt_a: parsed.alt_a || null,
           alt_b: parsed.alt_b || null,
@@ -139,6 +247,8 @@ serve(async (req) => {
           link_original: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
           citacoes: 0,
           score_relevancia: scoreRelevancia,
+          tem_texto_completo: temTextoCompleto,
+          url_texto_completo: urlTextoCompleto,
         });
 
         if (insertErr) {

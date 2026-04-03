@@ -23,6 +23,7 @@ export type Database = {
           analise_metodologica: string | null
           ano: number | null
           citacoes: number | null
+          conflitos_interesse: string | null
           contexto_vs_anterior: string | null
           created_at: string | null
           data_publicacao: string | null
@@ -32,6 +33,7 @@ export type Database = {
           grade_justificativa: string | null
           id: string
           journal: string | null
+          limitacoes_autores: string | null
           link_original: string | null
           pmid: string | null
           questao: string | null
@@ -39,8 +41,11 @@ export type Database = {
           resumo_pt: string | null
           rob_resultado: string | null
           score_relevancia: number | null
+          tem_texto_completo: boolean | null
           tipo_estudo: string | null
           titulo: string
+          url_texto_completo: string | null
+          vieses_detalhados: string | null
         }
         Insert: {
           alt_a?: string | null
@@ -50,6 +55,7 @@ export type Database = {
           analise_metodologica?: string | null
           ano?: number | null
           citacoes?: number | null
+          conflitos_interesse?: string | null
           contexto_vs_anterior?: string | null
           created_at?: string | null
           data_publicacao?: string | null
@@ -59,6 +65,7 @@ export type Database = {
           grade_justificativa?: string | null
           id?: string
           journal?: string | null
+          limitacoes_autores?: string | null
           link_original?: string | null
           pmid?: string | null
           questao?: string | null
@@ -66,8 +73,11 @@ export type Database = {
           resumo_pt?: string | null
           rob_resultado?: string | null
           score_relevancia?: number | null
+          tem_texto_completo?: boolean | null
           tipo_estudo?: string | null
           titulo: string
+          url_texto_completo?: string | null
+          vieses_detalhados?: string | null
         }
         Update: {
           alt_a?: string | null
@@ -77,6 +87,7 @@ export type Database = {
           analise_metodologica?: string | null
           ano?: number | null
           citacoes?: number | null
+          conflitos_interesse?: string | null
           contexto_vs_anterior?: string | null
           created_at?: string | null
           data_publicacao?: string | null
@@ -86,6 +97,7 @@ export type Database = {
           grade_justificativa?: string | null
           id?: string
           journal?: string | null
+          limitacoes_autores?: string | null
           link_original?: string | null
           pmid?: string | null
           questao?: string | null
@@ -93,8 +105,11 @@ export type Database = {
           resumo_pt?: string | null
           rob_resultado?: string | null
           score_relevancia?: number | null
+          tem_texto_completo?: boolean | null
           tipo_estudo?: string | null
           titulo?: string
+          url_texto_completo?: string | null
+          vieses_detalhados?: string | null
         }
         Relationships: []
       }
