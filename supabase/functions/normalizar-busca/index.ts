@@ -43,27 +43,44 @@ serve(async (req) => {
       filtroExtra += `\nO usuário quer artigos dos últimos ${filtros.periodo === "2anos" ? "2 anos" : "5 anos"}. NÃO inclua filtros de data na query — isso será tratado separadamente.`;
     }
 
-    const prompt = `Você é um especialista em busca bibliográfica médica.
-O usuário quer buscar: "${texto.trim()}"
+    const prompt = `Você é um especialista em busca bibliográfica médica no PubMed.
+O usuário buscou: "${texto.trim()}"
 ${filtroExtra}
+
+REGRAS OBRIGATÓRIAS para construir a query:
+1. Identifique os conceitos principais separadamente
+2. Para cada conceito, liste MeSH term + sinônimos + abreviações
+3. Conecte os conceitos com AND (do mais geral para o mais específico)
+4. Use OR entre sinônimos do mesmo conceito
+5. NUNCA use um único termo sem alternativas
+6. Inclua sempre variações em inglês (ex: dapagliflozin, dapaglifozina → "Dapagliflozin")
 
 Retorne APENAS um JSON válido sem markdown, sem backticks:
 {
-  "query_pubmed": "query otimizada para PubMed com termos MeSH quando aplicável, em inglês, usando operadores booleanos AND/OR/NOT e qualificadores [MeSH Terms][Title/Abstract] etc",
+  "query_pubmed": "query otimizada para PubMed com termos MeSH, operadores booleanos AND/OR e qualificadores [MeSH Terms][Title/Abstract]",
   "query_cochrane": "termos simplificados para busca na Cochrane, em inglês, sem qualificadores técnicos",
-  "termos_identificados": ["lista", "dos", "conceitos", "principais"],
+  "conceitos": [
+    {
+      "conceito": "nome do conceito em português",
+      "termos_usados": ["lista", "de", "termos", "inglês", "usados"]
+    }
+  ],
   "tipo_busca": "tratamento|diagnóstico|epidemiologia|prognóstico|outro"
 }
 
-Exemplos:
-- "tratamento da insuficiência cardíaca" →
-  query_pubmed: "(\"Heart Failure\"[MeSH Terms] OR \"heart failure\"[Title/Abstract]) AND (\"therapy\"[MeSH Subheading] OR \"treatment\"[Title/Abstract] OR \"management\"[Title/Abstract])"
+EXEMPLOS de queries corretas (do geral para específico):
 
-- "novos anticoagulantes no AVC" →
-  query_pubmed: "(\"Anticoagulants\"[MeSH Terms] OR \"NOAC\"[Title/Abstract] OR \"DOAC\"[Title/Abstract]) AND (\"Stroke\"[MeSH Terms] OR \"stroke\"[Title/Abstract])"
+Entrada: "dapaglifozina insuficiência cardíaca"
+Saída query_pubmed:
+("Heart Failure"[MeSH Terms] OR "heart failure"[Title/Abstract] OR "cardiac failure"[Title/Abstract]) AND ("Dapagliflozin"[MeSH Terms] OR "dapagliflozin"[Title/Abstract] OR "Farxiga"[Title/Abstract] OR "SGLT2 inhibitor"[Title/Abstract] OR "sodium glucose cotransporter 2"[Title/Abstract])
 
-- "metformina diabetes tipo 2 idosos" →
-  query_pubmed: "\"Metformin\"[MeSH Terms] AND \"Diabetes Mellitus, Type 2\"[MeSH Terms] AND (\"Aged\"[MeSH Terms] OR \"elderly\"[Title/Abstract])"`;
+Entrada: "tratamento fibrilação atrial novos anticoagulantes"
+Saída query_pubmed:
+("Atrial Fibrillation"[MeSH Terms] OR "atrial fibrillation"[Title/Abstract] OR "AF"[Title/Abstract]) AND ("Anticoagulants"[MeSH Terms] OR "anticoagulant"[Title/Abstract] OR "NOAC"[Title/Abstract] OR "DOAC"[Title/Abstract] OR "direct oral anticoagulant"[Title/Abstract])
+
+Entrada: "hipertensão resistente espironolactona"
+Saída query_pubmed:
+("Hypertension"[MeSH Terms] OR "hypertension"[Title/Abstract] OR "high blood pressure"[Title/Abstract]) AND ("drug-resistant"[Title/Abstract] OR "resistant"[Title/Abstract] OR "refractory"[Title/Abstract]) AND ("Spironolactone"[MeSH Terms] OR "spironolactone"[Title/Abstract] OR "aldosterone antagonist"[Title/Abstract])`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -91,7 +108,6 @@ Exemplos:
     const claudeData = await response.json();
     const textContent = claudeData.content?.[0]?.text || "";
 
-    // Extract JSON from response
     let parsed;
     try {
       const jsonMatch = textContent.match(/\{[\s\S]*\}/);

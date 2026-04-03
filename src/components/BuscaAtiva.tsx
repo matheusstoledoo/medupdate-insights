@@ -9,7 +9,8 @@ import {
   BookOpen,
   Loader2,
   Clock,
-  X,
+  Sparkles,
+  AlertCircle,
 } from "lucide-react";
 import GradeBadge from "@/components/GradeBadge";
 import {
@@ -28,13 +29,20 @@ interface PubMedResult {
   journal: string;
   ano: string;
   link: string;
-  artigoLocal?: { id: string; grade?: string | null } | null;
+  artigoLocal?: { id: string; grade?: string | null; resumo_pt?: string | null } | null;
+  analisando?: boolean;
+}
+
+interface Conceito {
+  conceito: string;
+  termos_usados: string[];
 }
 
 interface NormalizacaoResult {
   query_pubmed: string;
   query_cochrane: string;
-  termos_identificados: string[];
+  conceitos?: Conceito[];
+  termos_identificados?: string[];
   tipo_busca: string;
 }
 
@@ -52,6 +60,8 @@ const periodoLabels: Record<Periodo, string> = {
   "5anos": "Últimos 5 anos",
 };
 
+const conceitoEmojis = ["🔵", "🟢", "🟠", "🟣", "🔴"];
+
 const BuscaAtiva = () => {
   const [texto, setTexto] = useState("");
   const [buscando, setBuscando] = useState(false);
@@ -60,6 +70,7 @@ const BuscaAtiva = () => {
   const [normalizacao, setNormalizacao] = useState<NormalizacaoResult | null>(null);
   const [queryEditavel, setQueryEditavel] = useState("");
   const [queryAberta, setQueryAberta] = useState(false);
+  const [queryTecnicaAberta, setQueryTecnicaAberta] = useState(false);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [tipoEstudo, setTipoEstudo] = useState<TipoEstudo>("todos");
   const [periodo, setPeriodo] = useState<Periodo>("todos");
@@ -67,8 +78,8 @@ const BuscaAtiva = () => {
   const [buscasRecentes, setBuscasRecentes] = useState<{ id: string; texto_original: string }[]>([]);
   const [erroMsg, setErroMsg] = useState<string | null>(null);
   const [buscaRealizada, setBuscaRealizada] = useState(false);
+  const [analisesRealizadas, setAnalisesRealizadas] = useState(0);
 
-  // Load recent searches
   useEffect(() => {
     const carregarRecentes = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -84,6 +95,9 @@ const BuscaAtiva = () => {
     carregarRecentes();
   }, []);
 
+  // Reset analysis count on new search
+  const resetAnalises = () => setAnalisesRealizadas(0);
+
   const salvarBusca = async (textoOriginal: string, queryPubmed: string, queryCochrane: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -93,7 +107,6 @@ const BuscaAtiva = () => {
       query_pubmed: queryPubmed,
       query_cochrane: queryCochrane,
     });
-    // Refresh recent
     const { data } = await supabase
       .from("buscas")
       .select("id, texto_original")
@@ -104,7 +117,6 @@ const BuscaAtiva = () => {
   };
 
   const buscarPubMed = async (query: string) => {
-    // Build date filter
     let dateFilter = "";
     if (periodo === "2anos") {
       const minYear = new Date().getFullYear() - 2;
@@ -115,7 +127,7 @@ const BuscaAtiva = () => {
     }
 
     const fullQuery = query + dateFilter;
-    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(fullQuery)}&retmax=10&retmode=json&sort=relevance`;
+    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(fullQuery)}&retmax=20&retmode=json&sort=relevance`;
 
     const searchResp = await fetch(searchUrl);
     const searchData = await searchResp.json();
@@ -123,12 +135,10 @@ const BuscaAtiva = () => {
 
     if (pmids.length === 0) return [];
 
-    // Fetch details
     const fetchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmids.join(",")}&retmode=xml`;
     const fetchResp = await fetch(fetchUrl);
     const xmlText = await fetchResp.text();
 
-    // Parse XML
     const parser = new DOMParser();
     const doc = parser.parseFromString(xmlText, "text/xml");
     const articles = doc.querySelectorAll("PubmedArticle");
@@ -160,18 +170,22 @@ const BuscaAtiva = () => {
       const pmidList = results.map((r) => r.pmid).filter(Boolean);
       const { data: locais } = await supabase
         .from("artigos")
-        .select("id, pmid, grade")
+        .select("id, pmid, grade, resumo_pt")
         .in("pmid", pmidList);
 
       if (locais) {
-        const pmidMap = new Map(locais.map((a) => [a.pmid, { id: a.id, grade: a.grade }]));
+        const pmidMap = new Map(locais.map((a) => [a.pmid, { id: a.id, grade: a.grade, resumo_pt: a.resumo_pt }]));
         results.forEach((r) => {
           r.artigoLocal = pmidMap.get(r.pmid) || null;
         });
       }
     }
 
-    return results;
+    // Sort: articles with local analysis first, then by year DESC
+    const comAnalise = results.filter((r) => r.artigoLocal).sort((a, b) => Number(b.ano || 0) - Number(a.ano || 0));
+    const semAnalise = results.filter((r) => !r.artigoLocal).sort((a, b) => Number(b.ano || 0) - Number(a.ano || 0));
+
+    return [...comAnalise, ...semAnalise];
   };
 
   const executarBusca = async (textoOverride?: string) => {
@@ -183,9 +197,9 @@ const BuscaAtiva = () => {
     setNormalizando(true);
     setResultados([]);
     setNormalizacao(null);
+    resetAnalises();
 
     try {
-      // Step 1: Normalize with Claude
       const { data: normData, error: normError } = await supabase.functions.invoke(
         "normalizar-busca",
         { body: { texto: textoFinal, filtros: { tipoEstudo, periodo } } }
@@ -198,10 +212,8 @@ const BuscaAtiva = () => {
       setQueryEditavel(normData.query_pubmed || "");
       setNormalizando(false);
 
-      // Save search
       salvarBusca(textoFinal, normData.query_pubmed, normData.query_cochrane);
 
-      // Step 2: Search PubMed
       if (fontes.pubmed) {
         setBuscando(true);
         const results = await buscarPubMed(normData.query_pubmed);
@@ -227,6 +239,42 @@ const BuscaAtiva = () => {
       setErroMsg(err.message || "Erro ao buscar no PubMed");
     }
     setBuscando(false);
+  };
+
+  const analisarArtigo = async (pmid: string) => {
+    if (analisesRealizadas >= 3) return;
+
+    setResultados((prev) =>
+      prev.map((r) => (r.pmid === pmid ? { ...r, analisando: true } : r))
+    );
+
+    try {
+      const { data, error } = await supabase.functions.invoke("processar-artigo-unico", {
+        body: { pmid },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      setResultados((prev) =>
+        prev.map((r) =>
+          r.pmid === pmid
+            ? {
+                ...r,
+                analisando: false,
+                artigoLocal: { id: data.id, grade: data.grade, resumo_pt: data.resumo_pt },
+              }
+            : r
+        )
+      );
+      setAnalisesRealizadas((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Erro ao analisar artigo:", err);
+      setResultados((prev) =>
+        prev.map((r) => (r.pmid === pmid ? { ...r, analisando: false } : r))
+      );
+      setErroMsg(`Erro ao analisar PMID ${pmid}: ${err.message}`);
+    }
   };
 
   const cochraneUrl = normalizacao
@@ -372,12 +420,13 @@ const BuscaAtiva = () => {
 
       {/* Error */}
       {erroMsg && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          {erroMsg}
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>{erroMsg}</span>
         </div>
       )}
 
-      {/* Generated query */}
+      {/* Generated query — concept-based display */}
       {normalizacao && (
         <Collapsible open={queryAberta} onOpenChange={setQueryAberta}>
           <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -385,36 +434,67 @@ const BuscaAtiva = () => {
             Query utilizada
             <span className="text-xs text-secondary">({normalizacao.tipo_busca})</span>
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-3 space-y-3 rounded-lg border border-border bg-card p-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">PubMed Query</label>
-              <textarea
-                value={queryEditavel}
-                onChange={(e) => setQueryEditavel(e.target.value)}
-                rows={3}
-                className="w-full rounded-md border border-border bg-background p-3 font-mono text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-secondary/50"
-              />
-              <button
-                onClick={reexecutarComQuery}
-                disabled={buscando}
-                className="mt-2 text-xs text-secondary hover:underline"
-              >
-                Re-executar com query editada
-              </button>
-            </div>
+          <CollapsibleContent className="mt-3 space-y-4 rounded-lg border border-border bg-card p-4">
+            {/* Concepts display */}
+            {normalizacao.conceitos && normalizacao.conceitos.length > 0 && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-2 block">Conceitos identificados</label>
+                <div className="space-y-2">
+                  {normalizacao.conceitos.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="text-sm">{conceitoEmojis[i % conceitoEmojis.length]}</span>
+                      <div>
+                        <span className="text-xs font-medium text-foreground">{c.conceito}:</span>
+                        <span className="text-xs text-muted-foreground ml-1">
+                          {c.termos_usados.join(", ")}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Fallback for old format */}
+            {!normalizacao.conceitos && normalizacao.termos_identificados && (
+              <div className="flex flex-wrap gap-1.5">
+                {normalizacao.termos_identificados.map((t, i) => (
+                  <span key={i} className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-[10px] font-medium text-secondary border border-secondary/20">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Technical query collapsible */}
+            <Collapsible open={queryTecnicaAberta} onOpenChange={setQueryTecnicaAberta}>
+              <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {queryTecnicaAberta ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                Query técnica PubMed (clique para ver)
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3">
+                <textarea
+                  value={queryEditavel}
+                  onChange={(e) => setQueryEditavel(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-md border border-border bg-background p-3 font-mono text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-secondary/50"
+                />
+                <button
+                  onClick={reexecutarComQuery}
+                  disabled={buscando}
+                  className="text-xs text-secondary hover:underline"
+                >
+                  Re-executar com query editada
+                </button>
+              </CollapsibleContent>
+            </Collapsible>
+
             {normalizacao.query_cochrane && (
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Cochrane Query</label>
                 <p className="font-mono text-xs text-muted-foreground">{normalizacao.query_cochrane}</p>
               </div>
             )}
-            <div className="flex flex-wrap gap-1.5">
-              {normalizacao.termos_identificados?.map((t, i) => (
-                <span key={i} className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-[10px] font-medium text-secondary border border-secondary/20">
-                  {t}
-                </span>
-              ))}
-            </div>
           </CollapsibleContent>
         </Collapsible>
       )}
@@ -441,7 +521,9 @@ const BuscaAtiva = () => {
                   {resultados.map((r) => (
                     <article
                       key={r.pmid}
-                      className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-secondary/30"
+                      className={`rounded-lg border bg-card p-4 transition-colors ${
+                        r.analisando ? "border-secondary/40 bg-secondary/5" : "border-border hover:border-secondary/30"
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <h3 className="text-sm font-semibold text-foreground leading-snug flex-1">
@@ -458,10 +540,26 @@ const BuscaAtiva = () => {
                         )}
                       </div>
 
-                      {r.abstract && (
+                      {/* Show resumo if analyzed */}
+                      {r.artigoLocal?.resumo_pt && (
+                        <p className="text-xs text-foreground/80 mb-3 leading-relaxed">
+                          {r.artigoLocal.resumo_pt}
+                        </p>
+                      )}
+
+                      {/* Show abstract if no local analysis */}
+                      {!r.artigoLocal && r.abstract && (
                         <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
                           {r.abstract}
                         </p>
+                      )}
+
+                      {/* Analyzing state */}
+                      {r.analisando && (
+                        <div className="flex items-center gap-2 mb-3 rounded-md bg-secondary/10 px-3 py-2">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-secondary" />
+                          <span className="text-xs text-secondary">Analisando com IA... (pode levar 20 segundos)</span>
+                        </div>
                       )}
 
                       <div className="flex items-center justify-between">
@@ -478,25 +576,58 @@ const BuscaAtiva = () => {
                           <span className="font-mono">PMID {r.pmid}</span>
                         </div>
 
-                        {r.artigoLocal ? (
-                          <Link
-                            to={`/artigo/${r.artigoLocal.id}`}
-                            className="text-xs font-medium text-primary hover:underline"
-                          >
-                            Ver análise completa →
-                          </Link>
-                        ) : (
-                          <button
-                            onClick={() => abrirLink(r.link)}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-secondary hover:underline"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Ver no PubMed
-                          </button>
-                        )}
+                        <div className="flex items-center gap-3">
+                          {r.artigoLocal ? (
+                            <>
+                              <Link
+                                to={`/artigo/${r.artigoLocal.id}`}
+                                className="text-xs font-medium text-primary hover:underline"
+                              >
+                                Ver análise completa →
+                              </Link>
+                              <Link
+                                to={`/quiz/${r.artigoLocal.id}`}
+                                className="text-xs font-medium text-secondary hover:underline"
+                              >
+                                Responder questão →
+                              </Link>
+                            </>
+                          ) : r.analisando ? null : (
+                            <>
+                              {analisesRealizadas < 3 ? (
+                                <button
+                                  onClick={() => analisarArtigo(r.pmid)}
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-secondary/10 px-3 py-1.5 text-xs font-medium text-secondary hover:bg-secondary/20 transition-colors border border-secondary/20"
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                  Analisar este artigo
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-muted-foreground italic">
+                                  Limite de análises atingido
+                                </span>
+                              )}
+                              <button
+                                onClick={() => abrirLink(r.link)}
+                                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                PubMed
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </article>
                   ))}
+
+                  {/* Analysis limit warning */}
+                  {analisesRealizadas >= 3 && (
+                    <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-3 text-xs text-secondary flex items-center gap-2">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                      Limite de 3 análises por busca atingido. Inicie uma nova busca para analisar mais artigos.
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="rounded-lg border border-border bg-card p-6 text-center">
@@ -536,7 +667,12 @@ const BuscaAtiva = () => {
                       Encontramos revisões sistemáticas Cochrane relacionadas à sua busca.
                     </p>
                     <div className="flex flex-wrap gap-1.5 mb-4">
-                      {normalizacao.termos_identificados?.map((t, i) => (
+                      {(normalizacao.conceitos || []).map((c, i) => (
+                        <span key={i} className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] text-secondary">
+                          {c.conceito}
+                        </span>
+                      ))}
+                      {!normalizacao.conceitos && normalizacao.termos_identificados?.map((t, i) => (
                         <span key={i} className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] text-secondary">
                           {t}
                         </span>
