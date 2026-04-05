@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { abrirLinkExterno } from "@/lib/utils";
+import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Search, ExternalLink } from "lucide-react";
@@ -39,7 +39,7 @@ const getDataCorte = (filtro: Filtro): string | null => {
   }
 };
 
-const abrirArtigo = (url: string) => abrirLinkExterno(url);
+
 
 const formatarBadgeData = (dataStr: string | null) => {
   if (!dataStr) return null;
@@ -233,15 +233,15 @@ const Feed = () => {
                           <span>{artigo.ano}</span>
                           <span>·</span>
                           <span>{artigo.citacoes} citações</span>
-                          {artigo.link_original && (
+                          {(artigo.link_original || artigo.pmid) && (
                             <>
                               <span>·</span>
                               <button
-                                onClick={() => abrirArtigo(artigo.link_original!)}
+                                onClick={() => abrirLinkExterno(getLinkArtigo(artigo))}
                                 className="inline-flex items-center gap-1 text-primary hover:underline"
                               >
                                 <ExternalLink className="h-3 w-3" />
-                                PubMed
+                                {getLabelLinkArtigo(artigo)}
                               </button>
                             </>
                           )}
