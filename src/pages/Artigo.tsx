@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { abrirLinkExterno } from "@/lib/utils";
+import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink, ChevronLeft, CheckCircle, AlertTriangle, XCircle, HelpCircle, FileText, FileSearch } from "lucide-react";
@@ -171,14 +171,14 @@ const Artigo = () => {
           <span>{artigo.ano}</span>
           <span>·</span>
           <span>{artigo.citacoes} citações</span>
-          {artigo.link_original && (
+          {(artigo.link_original || artigo.pmid) && (
             <>
               <span>·</span>
               <button
-                onClick={() => abrirLinkExterno(artigo.link_original!)}
+                onClick={() => abrirLinkExterno(getLinkArtigo(artigo))}
                 className="inline-flex items-center gap-1 text-primary hover:underline"
               >
-                Ver artigo ↗
+                {getLabelLinkArtigo(artigo)}
               </button>
             </>
           )}

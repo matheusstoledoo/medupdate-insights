@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { abrirLinkExterno } from "@/lib/utils";
-import { buscarTextoCompletoNoFrontend } from "@/lib/fulltext";
+import { abrirLinkExterno, buscarTextoCompletoNoFrontend } from "@/utils/artigoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
@@ -269,7 +268,6 @@ const BuscaAtiva = () => {
           pmid,
           textoCompleto: fullText.completo ? fullText.texto : undefined,
           fonteTexto: fullText.completo ? fullText.fonte : undefined,
-          urlTextoCompleto: fullText.completo ? fullText.url : undefined,
         },
       });
 
