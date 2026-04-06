@@ -331,6 +331,44 @@ const BuscaAtiva = () => {
         </button>
       </div>
 
+      {/* Diagnóstico temporário */}
+      <button
+        onClick={async () => {
+          const pmidTeste = '38899865';
+          const msgs: string[] = [];
+          try {
+            const r1 = await fetch('https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids=' + pmidTeste + '&format=json&email=medupdate@app.com');
+            const d1 = await r1.json();
+            const pmcid = d1.records?.[0]?.pmcid;
+            msgs.push('PMC idconv: ' + (pmcid || 'NENHUM PMCID'));
+            if (pmcid) {
+              const r2 = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=' + pmcid + '&retmode=text&rettype=fulltext&email=medupdate@app.com');
+              const texto = await r2.text();
+              msgs.push('PMC efetch: ' + texto.length + ' chars (status ' + r2.status + ')');
+            }
+            const r3 = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=' + pmidTeste + '&cmd=llinkslib&retmode=xml&email=medupdate@app.com');
+            const xml = await r3.text();
+            const blocos = xml.match(/<ObjUrl>[\s\S]*?<\/ObjUrl>/gi) || [];
+            msgs.push('ELink: ' + blocos.length + ' links encontrados');
+            const livres = blocos.filter(b => {
+              const attrs = (b.match(/<Attribute>[\s\S]*?<\/Attribute>/gi) || []).map(a => a.replace(/<\/?Attribute>/gi,'').toLowerCase());
+              return attrs.some(a => a.includes('free') || a.includes('open access') || a.includes('full-text online'));
+            });
+            msgs.push('ELink gratuitos: ' + livres.length);
+            livres.forEach(b => {
+              const um = b.match(/<Url><!\[CDATA\[([^\]]+)\]\]><\/Url>|<Url>([^<]+)<\/Url>/);
+              if (um) msgs.push('  URL: ' + (um[1]||um[2]||'').substring(0,80));
+            });
+          } catch(e) {
+            msgs.push('ERRO: ' + String(e));
+          }
+          alert(msgs.join('\n'));
+        }}
+        style={{ margin: '8px 0', padding: '6px 12px', background: '#1B5E8E', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+      >
+        🔍 Diagnóstico FINEARTS-HF (PMID 38899865)
+      </button>
+
       {/* Source toggles */}
       <div className="flex gap-2">
         <button
