@@ -171,7 +171,7 @@ const Artigo = () => {
           <span>{artigo.ano}</span>
           <span>·</span>
           <span>{artigo.citacoes} citações</span>
-          {(artigo.link_original || artigo.pmid) && (
+          {getLinkArtigo(artigo) && (
             <>
               <span>·</span>
               <button
