@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink, ChevronLeft, CheckCircle, AlertTriangle, XCircle, HelpCircle, FileText, FileSearch } from "lucide-react";
+import { ExternalLink, ChevronLeft, CheckCircle, AlertTriangle, XCircle, HelpCircle, FileText, FileSearch, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
 import {
@@ -186,6 +186,14 @@ const Artigo = () => {
 
         {/* Divider */}
         <div className="h-px bg-[hsl(var(--divider))] mb-6" />
+
+        {/* Aviso abstract-only */}
+        {!temTextoCompleto && (
+          <div className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium bg-grade-b-bg text-grade-b-text mb-6">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            Texto completo não disponível — análise baseada no abstract
+          </div>
+        )}
 
         {/* Resumo */}
         <section className="mb-6">
