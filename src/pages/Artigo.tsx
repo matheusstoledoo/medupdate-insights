@@ -1,101 +1,10 @@
 import { useParams, Link } from "react-router-dom";
-import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink, ChevronLeft, CheckCircle, AlertTriangle, XCircle, HelpCircle, FileText, FileSearch, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
-import GradeBadge from "@/components/GradeBadge";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-const RobIcon = ({ resultado }: { resultado: string }) => {
-  const lower = resultado?.toLowerCase() || "";
-  if (lower.includes("baixo")) return <CheckCircle className="h-4 w-4 text-grade-a-text" />;
-  if (lower.includes("preocupações") || lower.includes("algumas")) return <AlertTriangle className="h-4 w-4 text-grade-b-text" />;
-  return <XCircle className="h-4 w-4 text-grade-d-text" />;
-};
-
-type DomainStatus = "baixo" | "preocupações" | "alto" | "nao_avaliado";
-
-interface RobDomain {
-  id: string;
-  label: string;
-  status: DomainStatus;
-  detail: string;
-}
-
-const getDomainIcon = (status: DomainStatus) => {
-  switch (status) {
-    case "baixo":
-      return <CheckCircle className="h-4 w-4 shrink-0 text-grade-a-text" />;
-    case "preocupações":
-      return <AlertTriangle className="h-4 w-4 shrink-0 text-grade-b-text" />;
-    case "alto":
-      return <XCircle className="h-4 w-4 shrink-0 text-grade-d-text" />;
-    default:
-      return <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground" />;
-  }
-};
-
-const DOMINIOS_ROB2 = [
-  { id: "D1", label: "Processo de randomização" },
-  { id: "D2", label: "Desvios da intervenção" },
-  { id: "D3", label: "Dados faltantes" },
-  { id: "D4", label: "Mensuração dos desfechos" },
-  { id: "D5", label: "Seleção dos resultados reportados" },
-];
-
-function parseViesesDetalhados(texto: string): RobDomain[] {
-  const lines = texto.split(/\n|;/).map(l => l.trim()).filter(Boolean);
-  
-  return DOMINIOS_ROB2.map((dominio) => {
-    const regex = new RegExp(dominio.id + "|" + dominio.label.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i");
-    const matchLine = lines.find(l => regex.test(l));
-    
-    let status: DomainStatus = "nao_avaliado";
-    let detail = "Não avaliado — informação insuficiente";
-    
-    if (matchLine) {
-      const lower = matchLine.toLowerCase();
-      if (lower.includes("alto risco") || lower.includes("alto")) {
-        status = "alto";
-      } else if (lower.includes("algumas preocupações") || lower.includes("preocupações") || lower.includes("preocupacoes")) {
-        status = "preocupações";
-      } else if (lower.includes("baixo risco") || lower.includes("baixo")) {
-        status = "baixo";
-      }
-      detail = matchLine.replace(/^[^:]+:\s*/, "").trim() || matchLine;
-    }
-    
-    return { ...dominio, status, detail };
-  });
-}
-
-function detectConflito(texto: string): "ausente" | "presente" {
-  const lower = texto.toLowerCase();
-  if (
-    lower.includes("nenhum conflito") ||
-    lower.includes("sem conflito") ||
-    lower.includes("ausência de conflito") ||
-    lower.includes("não declararam conflito") ||
-    lower.includes("não reportaram conflito") ||
-    lower.includes("nothing to disclose") ||
-    lower.includes("no conflicts")
-  ) {
-    return "ausente";
-  }
-  return "presente";
-}
+import ArtigoHeader from "@/components/artigo/ArtigoHeader";
+import AnaliseEstudo from "@/components/artigo/AnaliseEstudo";
+import AvaliacaoQualidade from "@/components/artigo/AvaliacaoQualidade";
 
 const Artigo = () => {
   const { id } = useParams<{ id: string }>();
@@ -136,66 +45,13 @@ const Artigo = () => {
     );
   }
 
-  const temTextoCompleto = (artigo as any).tem_texto_completo === true;
-  const viesesDetalhados = (artigo as any).vieses_detalhados as string | null;
-  const limitacoesAutores = (artigo as any).limitacoes_autores as string | null;
-  const conflitosInteresse = (artigo as any).conflitos_interesse as string | null;
-
-  const dominiosRob = viesesDetalhados ? parseViesesDetalhados(viesesDetalhados) : null;
-  const conflitoStatus = conflitosInteresse ? detectConflito(conflitosInteresse) : null;
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container max-w-[720px] py-8">
-        <Link
-          to="/feed"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ChevronLeft className="h-4 w-4" /> Feed
-        </Link>
+        <ArtigoHeader artigo={artigo} />
 
-        <div className="mb-4">
-          <GradeBadge grade={artigo.grade || ""} size="lg" />
-        </div>
-
-        <h1 className="font-serif text-[1.55rem] font-bold text-foreground leading-tight mb-4" style={{ letterSpacing: '-0.025em' }}>
-          {artigo.titulo}
-        </h1>
-
-        <div className="flex flex-wrap items-center gap-2 font-mono text-[0.75rem] text-muted-foreground mb-8">
-          <span className="uppercase tracking-wider">
-            {artigo.journal}
-          </span>
-          <span>·</span>
-          <span>{artigo.ano}</span>
-          <span>·</span>
-          <span>{artigo.citacoes} citações</span>
-          {getLinkArtigo(artigo) && (
-            <>
-              <span>·</span>
-              <button
-                onClick={() => abrirLinkExterno(getLinkArtigo(artigo))}
-                className="inline-flex items-center gap-1 text-primary hover:underline"
-              >
-                {getLabelLinkArtigo(artigo)}
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Divider */}
-        <div className="h-px bg-[hsl(var(--divider))] mb-6" />
-
-        {/* Aviso abstract-only */}
-        {!temTextoCompleto && (
-          <div className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium bg-grade-b-bg text-grade-b-text mb-6">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            Texto completo não disponível — análise baseada no abstract
-          </div>
-        )}
-
-        {/* Resumo */}
+        {/* SEÇÃO 1: RESUMO */}
         <section className="mb-6">
           <h2 className="text-[0.68rem] font-medium uppercase tracking-[0.1em] text-muted-foreground mb-3">
             Resumo
@@ -205,200 +61,13 @@ const Artigo = () => {
           </p>
         </section>
 
-        {/* Seções do artigo */}
-        <Accordion type="multiple" className="mb-6">
-          {(artigo as any).introducao_resumo && (
-            <AccordionItem value="introducao" className="border-[hsl(var(--border))]">
-              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-                Introdução e contexto
-              </AccordionTrigger>
-              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
-                <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
-                  {(artigo as any).introducao_resumo}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+        {/* SEÇÃO 2: ANÁLISE DO ESTUDO */}
+        <AnaliseEstudo artigo={artigo} />
 
-          {(artigo as any).metodologia_detalhada && (
-            <AccordionItem value="metodologia-detalhada" className="border-[hsl(var(--border))]">
-              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-                Metodologia detalhada
-              </AccordionTrigger>
-              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
-                <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
-                  {(artigo as any).metodologia_detalhada}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+        {/* SEÇÃO 3: AVALIAÇÃO DA QUALIDADE */}
+        <AvaliacaoQualidade artigo={artigo} />
 
-          {(artigo as any).resultados_principais && (
-            <AccordionItem value="resultados" className="border-[hsl(var(--border))]">
-              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-                Resultados principais
-              </AccordionTrigger>
-              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
-                <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
-                  {(artigo as any).resultados_principais}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          )}
-
-          {((artigo as any).conclusao_autores || (artigo as any).implicacao_clinica) && (
-            <AccordionItem value="conclusao" className="border-[hsl(var(--border))]">
-              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-                Conclusão e implicação clínica
-              </AccordionTrigger>
-              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
-                {(artigo as any).conclusao_autores && (
-                  <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
-                    {(artigo as any).conclusao_autores}
-                  </p>
-                )}
-                {(artigo as any).implicacao_clinica && (
-                  <div className="mt-3 rounded-md bg-accent/10 border border-accent/20 px-3 py-2">
-                    <p className="text-xs font-medium text-accent-foreground uppercase tracking-wider mb-1">
-                      Impacto na prática
-                    </p>
-                    <p className="text-sm text-foreground/80">
-                      {(artigo as any).implicacao_clinica}
-                    </p>
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          )}
-        </Accordion>
-
-        {/* Análise de qualidade do estudo */}
-        <Accordion type="multiple" className="mb-8">
-          <AccordionItem value="metodologia" className="border-[hsl(var(--border))]">
-            <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-              Análise de qualidade do estudo
-            </AccordionTrigger>
-            <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
-              {/* Badge de fonte da análise */}
-              <div className="mb-4">
-                {temTextoCompleto ? (
-                  <span className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium bg-grade-a-bg text-grade-a-text">
-                    <FileText className="h-3 w-3" />
-                    Análise do texto completo
-                  </span>
-                ) : (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium bg-surface-tertiary text-muted-foreground cursor-help">
-                          <FileSearch className="h-3 w-3" />
-                          Análise do abstract
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-xs text-xs">
-                        Análise baseada no resumo — alguns domínios podem não ter sido avaliados por falta de informação
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-
-              <p className="text-[0.88rem] text-foreground/80 leading-[1.72] mb-4">
-                {artigo.analise_metodologica}
-              </p>
-
-              {/* Badge principal de RoB */}
-              {artigo.rob_resultado && (
-                <div className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-card px-3 py-2 mb-4">
-                  <RobIcon resultado={artigo.rob_resultado} />
-                  <span className="text-sm font-medium text-foreground">
-                    Risco de viés: {artigo.rob_resultado}
-                  </span>
-                </div>
-              )}
-
-              {/* Vieses detalhados por domínio RoB 2 */}
-              {dominiosRob && (
-                <Accordion type="single" collapsible className="mb-3">
-                  <AccordionItem value="vieses" className="border-[hsl(var(--border))]">
-                    <AccordionTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:no-underline py-2">
-                      Ver análise de vieses por domínio
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-3 pt-1">
-                        {dominiosRob.map((d) => (
-                          <div key={d.id} className="flex items-start gap-2.5">
-                            {getDomainIcon(d.status)}
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-foreground leading-tight">
-                                {d.id} · {d.label}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                                {d.detail}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              )}
-
-              {/* Limitações dos autores */}
-              {limitacoesAutores && (
-                <Accordion type="single" collapsible className="mb-3">
-                  <AccordionItem value="limitacoes" className="border-[hsl(var(--border))]">
-                    <AccordionTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:no-underline py-2">
-                      Ver limitações declaradas pelos autores
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <p className="text-sm text-foreground/80 leading-relaxed">
-                        {limitacoesAutores}
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              )}
-
-              {/* Conflitos de interesse */}
-              {conflitosInteresse && (
-                <Accordion type="single" collapsible>
-                  <AccordionItem value="conflitos" className="border-[hsl(var(--border))]">
-                    <AccordionTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:no-underline py-2">
-                      Conflitos de interesse
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="flex items-start gap-2">
-                        {conflitoStatus === "ausente" ? (
-                          <CheckCircle className="h-4 w-4 shrink-0 text-grade-a-text mt-0.5" />
-                        ) : (
-                          <AlertTriangle className="h-4 w-4 shrink-0 text-grade-b-text mt-0.5" />
-                        )}
-                        <p className="text-sm text-foreground/80 leading-relaxed">
-                          {conflitosInteresse}
-                        </p>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="contexto" className="border-[hsl(var(--border))]">
-            <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-              O que mudou em relação ao que já se sabia
-            </AccordionTrigger>
-            <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
-              <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
-                {artigo.contexto_vs_anterior}
-              </p>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-
-        {/* CTA */}
+        {/* SEÇÃO 4: QUESTÃO CLÍNICA */}
         <Link
           to={`/quiz/${artigo.id}`}
           className="inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
