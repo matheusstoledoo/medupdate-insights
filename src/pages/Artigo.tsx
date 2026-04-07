@@ -205,11 +205,78 @@ const Artigo = () => {
           </p>
         </section>
 
-        {/* Acordeões */}
+        {/* Seções do artigo */}
+        <Accordion type="multiple" className="mb-6">
+          {(artigo as any).introducao_resumo && (
+            <AccordionItem value="introducao" className="border-[hsl(var(--border))]">
+              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
+                Introdução e contexto
+              </AccordionTrigger>
+              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
+                <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
+                  {(artigo as any).introducao_resumo}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {(artigo as any).metodologia_detalhada && (
+            <AccordionItem value="metodologia-detalhada" className="border-[hsl(var(--border))]">
+              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
+                Metodologia detalhada
+              </AccordionTrigger>
+              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
+                <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
+                  {(artigo as any).metodologia_detalhada}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {(artigo as any).resultados_principais && (
+            <AccordionItem value="resultados" className="border-[hsl(var(--border))]">
+              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
+                Resultados principais
+              </AccordionTrigger>
+              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
+                <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
+                  {(artigo as any).resultados_principais}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {((artigo as any).conclusao_autores || (artigo as any).implicacao_clinica) && (
+            <AccordionItem value="conclusao" className="border-[hsl(var(--border))]">
+              <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
+                Conclusão e implicação clínica
+              </AccordionTrigger>
+              <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
+                {(artigo as any).conclusao_autores && (
+                  <p className="text-[0.88rem] text-foreground/80 leading-[1.72]">
+                    {(artigo as any).conclusao_autores}
+                  </p>
+                )}
+                {(artigo as any).implicacao_clinica && (
+                  <div className="mt-3 rounded-md bg-accent/10 border border-accent/20 px-3 py-2">
+                    <p className="text-xs font-medium text-accent-foreground uppercase tracking-wider mb-1">
+                      Impacto na prática
+                    </p>
+                    <p className="text-sm text-foreground/80">
+                      {(artigo as any).implicacao_clinica}
+                    </p>
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          )}
+        </Accordion>
+
+        {/* Análise de qualidade do estudo */}
         <Accordion type="multiple" className="mb-8">
           <AccordionItem value="metodologia" className="border-[hsl(var(--border))]">
             <AccordionTrigger className="text-[0.9rem] font-medium text-foreground hover:no-underline">
-              Análise metodológica
+              Análise de qualidade do estudo
             </AccordionTrigger>
             <AccordionContent className="bg-surface-secondary rounded-b-lg px-4 py-4 border-l-2 border-primary">
               {/* Badge de fonte da análise */}
