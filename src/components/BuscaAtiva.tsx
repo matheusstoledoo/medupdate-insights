@@ -558,10 +558,15 @@ const BuscaAtiva = () => {
                       {/* Show resumo if analyzed */}
                       {r.artigoLocal?.resumo_pt && (
                         <>
-                          {r.analisadoDoAbstract && (
-                            <div className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium bg-grade-b-bg text-grade-b-text mb-2">
+                          {r.analisadoDoAbstract ? (
+                            <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 mb-2 w-fit">
                               <AlertCircle className="h-3 w-3 shrink-0" />
-                              Texto completo não disponível — análise baseada no abstract
+                              Análise baseada no abstract
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-grade-a-bg text-grade-a-text border border-grade-a-text/20 mb-2 w-fit">
+                              <BookOpen className="h-3 w-3 shrink-0" />
+                              Análise do texto completo
                             </div>
                           )}
                           <p className="text-xs text-foreground/80 mb-3 leading-relaxed">

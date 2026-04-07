@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronLeft, AlertCircle } from "lucide-react";
+import { ChevronLeft, AlertCircle, FileText } from "lucide-react";
 import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import GradeBadge from "@/components/GradeBadge";
 import type { ArtigoData } from "./types";
@@ -8,6 +8,7 @@ interface Props { artigo: ArtigoData; }
 
 const ArtigoHeader = ({ artigo }: Props) => {
   const temTextoCompleto = artigo.tem_texto_completo === true;
+  const fonteTexto = artigo.fonte_texto as string | null;
 
   return (
     <>
@@ -22,6 +23,21 @@ const ArtigoHeader = ({ artigo }: Props) => {
       <h1 className="font-serif text-[1.55rem] font-bold text-foreground leading-tight mb-4" style={{ letterSpacing: '-0.025em' }}>
         {artigo.titulo}
       </h1>
+
+      {/* Badge permanente de fonte */}
+      <div className="flex items-center gap-2 mb-4">
+        {temTextoCompleto ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-grade-a-bg text-grade-a-text border border-grade-a-text/20">
+            <FileText className="h-3.5 w-3.5" />
+            Análise do texto completo · {fonteTexto}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+            <AlertCircle className="h-3.5 w-3.5" />
+            Análise baseada no abstract — texto completo não disponível gratuitamente
+          </span>
+        )}
+      </div>
 
       <div className="flex flex-wrap items-center gap-2 font-mono text-[0.75rem] text-muted-foreground mb-8">
         <span className="uppercase tracking-wider">{artigo.journal}</span>
@@ -40,13 +56,6 @@ const ArtigoHeader = ({ artigo }: Props) => {
       </div>
 
       <div className="h-px bg-[hsl(var(--divider))] mb-6" />
-
-      {!temTextoCompleto && (
-        <div className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium bg-grade-b-bg text-grade-b-text mb-6">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          Texto completo não disponível — análise baseada no abstract
-        </div>
-      )}
     </>
   );
 };
