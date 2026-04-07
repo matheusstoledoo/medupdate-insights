@@ -173,9 +173,81 @@ Deno.serve(async (req) => {
     // ETAPA 3 — Claude API
     console.log(`[ETAPA 3] Claude API — fonte: ${fonteTexto} — ${textoAnalise.length} chars`);
 
-    const promptCtx = temTextoCompleto
-      ? `Você tem o TEXTO COMPLETO deste artigo (fonte: ${fonteTexto}). Faça análise metodológica DETALHADA: método de randomização, cegamento, análise ITT, tamanho amostral, limitações dos autores, conflitos de interesse.`
-      : `Você tem apenas o ABSTRACT. Faça a melhor análise possível. Indique nos campos vieses_detalhados e limitacoes_autores quando não foi possível avaliar por falta de informação no abstract.`;
+    const promptAnalise = `Você é especialista em epidemiologia clínica e medicina baseada em evidências, analisando artigos para cardiologistas brasileiros.
+
+${temTextoCompleto ? `Você tem o TEXTO COMPLETO deste artigo (fonte: ${fonteTexto}).` : `Você tem apenas o ABSTRACT. Faça a melhor análise possível. Indique quando não foi possível avaliar por falta de informação.`}
+
+Analise o artigo abaixo com profundidade máxima.
+
+PASSO 1 — Identifique o tipo de estudo:
+- Ensaio Clínico Randomizado (RCT)
+- Revisão Sistemática ou Meta-análise
+- Estudo de Coorte
+- Estudo Caso-Controle
+- Estudo Transversal
+- Guideline / Consenso
+- Outro (especificar)
+
+PASSO 2 — Aplique as ferramentas corretas:
+
+SE for RCT:
+- RoB 2: avalie os 5 domínios (D1 randomização, D2 desvios da intervenção, D3 dados incompletos, D4 mensuração do desfecho, D5 seleção do resultado). Para cada domínio: julgamento (baixo risco / algumas preocupações / alto risco) + justificativa específica.
+- Jadad Scale: pontue randomização (0-2) + cegamento (0-2) + perdas/exclusões (0-1). Score total 0-5. ≥3 = boa qualidade.
+- CASP RCT: avalie validade, resultados e aplicabilidade clínica.
+
+SE for Revisão Sistemática ou Meta-análise:
+- AMSTAR 2: classifique como alta / moderada / baixa / criticamente baixa qualidade com justificativa nos domínios críticos.
+- ROBIS: avalie risco de viés em 3 fases (relevância do escopo, condução da revisão, julgamento final).
+- CASP SR: avalie validade, resultados e aplicabilidade.
+- GRADE da evidência: classifique a qualidade da evidência gerada.
+
+SE for Coorte:
+- CASP Cohort: avalie seleção, mensuração de exposição, seguimento e desfechos.
+- Newcastle-Ottawa Scale: pontue seleção (0-4), comparabilidade (0-2), desfecho (0-3).
+
+SE for Caso-Controle:
+- CASP Case-Control: avalie validade interna e externa.
+- Newcastle-Ottawa Scale adaptada para caso-controle.
+
+SE for Guideline/Consenso:
+- AGREE II resumido: avalie escopo, envolvimento de stakeholders, rigor de desenvolvimento, clareza, aplicabilidade.
+
+PASSO 3 — Retorne SOMENTE este JSON válido, sem texto antes ou depois:
+{
+  "titulo": "título completo em português",
+  "journal": "nome do periódico",
+  "ano": 2024,
+  "tipo_estudo": "tipo exato identificado no Passo 1",
+  "ferramentas_usadas": "lista das ferramentas aplicadas separadas por vírgula",
+  "resumo_pt": "2-3 frases sintetizando o artigo",
+  "introducao_resumo": "contexto clínico, lacuna na evidência e justificativa do estudo em 2-3 frases",
+  "metodologia_detalhada": "desenho do estudo, população (n, critérios inclusão/exclusão), intervenção vs controle, desfecho primário e secundários, seguimento, método de randomização e cegamento quando aplicável, análise estatística principal",
+  "resultados_principais": "desfecho primário com resultado numérico, IC 95% e valor p. Desfechos secundários relevantes. Eventos adversos. NNT ou NNH quando calculável.",
+  "conclusao_autores": "conclusão declarada pelos autores",
+  "implicacao_clinica": "impacto direto na prática clínica em 1-2 frases objetivas",
+  "grade": "Alto, Moderado, Baixo ou Muito baixo",
+  "grade_justificativa": "justificativa específica referenciando os domínios GRADE",
+  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco (para RCT) / julgamento equivalente para outros tipos",
+  "vieses_detalhados": "Para RCT — D1: [julgamento] — [justificativa]. D2-D5 idem. Para outros tipos — adaptar conforme ferramenta aplicada.",
+  "jadad_score": null,
+  "jadad_justificativa": "pontuação detalhada apenas se RCT: randomização X/2, cegamento X/2, perdas X/1. Total: X/5",
+  "amstar2_classificacao": null,
+  "amstar2_justificativa": "apenas se revisão sistemática: classificação e domínios críticos com problemas identificados",
+  "robis_resultado": null,
+  "robis_justificativa": "apenas se revisão sistemática: resultado das 3 fases do ROBIS",
+  "analise_metodologica": "avaliação crítica independente em 3-4 frases: pontos fortes, limitações metodológicas e grau de confiança nas conclusões",
+  "limitacoes_autores": "limitações declaradas pelos próprios autores",
+  "conflitos_interesse": "conflitos de interesse e fonte de financiamento",
+  "contexto_vs_anterior": "como este estudo muda, confirma ou contradiz a evidência prévia",
+  "casp_resumo": "avaliação CASP resumida: válido? resultados importantes? aplicável à população brasileira?",
+  "questao": "caso clínico de 2-3 frases baseado nos resultados do estudo",
+  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+  "resposta_correta": "A, B, C ou D",
+  "feedback_quiz": "explicação da resposta correta com referência direta aos resultados do estudo e impacto no guideline"
+}
+
+Artigo (fonte: ${fonteTexto}, ${textoAnalise.length} chars):
+${textoAnalise}`;
 
     const claudeResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -186,15 +258,10 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 2500,
-        messages: [
-          {
-            role: "user",
-            content: `${promptCtx}\n\nRetorne SOMENTE um JSON válido:\n{\n"titulo":"título em português",\n"journal":"nome do journal",\n"ano":2024,\n"tipo_estudo":"tipo exato do estudo",\n"resumo_pt":"2-3 frases sintetizando o artigo inteiro",\n"introducao_resumo":"contexto clínico e justificativa do estudo em 2-3 frases",\n"metodologia_detalhada":"descrição detalhada: desenho do estudo, população, critérios de inclusão/exclusão, intervenção, desfecho primário e secundários, tamanho amostral, método de randomização, cegamento, análise estatística",\n"resultados_principais":"resultados numéricos principais com IC 95% e valores de p quando disponíveis, desfecho primário e secundários relevantes, eventos adversos significativos",\n"conclusao_autores":"conclusão declarada pelos autores + implicação clínica direta para a prática",\n"implicacao_clinica":"impacto prático direto na conduta clínica em 1-2 frases",\n"grade":"Alto, Moderado, Baixo ou Muito baixo",\n"grade_justificativa":"justificativa específica em uma frase",\n"rob_resultado":"Baixo risco, Algumas preocupações ou Alto risco",\n"analise_metodologica":"avaliação crítica independente da metodologia em 3-4 frases",\n"vieses_detalhados":"avaliação por domínio RoB 2: D1-randomização, D2-desvios, D3-dados faltantes, D4-mensuração, D5-seleção de resultados",\n"limitacoes_autores":"limitações declaradas pelos próprios autores",\n"conflitos_interesse":"conflitos de interesse e financiamento reportados",\n"contexto_vs_anterior":"como este estudo muda ou confirma a evidência anterior",\n"questao":"caso clínico de 2-3 frases para quiz",\n"alt_a":"","alt_b":"","alt_c":"","alt_d":"",\n"resposta_correta":"A, B, C ou D",\n"feedback_quiz":"explicação da resposta com impacto no guideline"\n}\n\nArtigo (${fonteTexto}, ${textoAnalise.length} chars):\n${textoAnalise}`,
-          },
-        ],
+        max_tokens: 4000,
+        messages: [{ role: "user", content: promptAnalise }],
       }),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(90000),
     });
 
     if (!claudeResp.ok) {
@@ -233,11 +300,19 @@ Deno.serve(async (req) => {
         conclusao_autores: analise.conclusao_autores || null,
         implicacao_clinica: analise.implicacao_clinica || null,
         tipo_estudo: analise.tipo_estudo || null,
+        ferramentas_usadas: analise.ferramentas_usadas || null,
         grade: analise.grade || null,
         grade_justificativa: analise.grade_justificativa || null,
         rob_resultado: analise.rob_resultado || null,
         analise_metodologica: analise.analise_metodologica || null,
         vieses_detalhados: analise.vieses_detalhados || null,
+        jadad_score: analise.jadad_score || null,
+        jadad_justificativa: analise.jadad_justificativa || null,
+        amstar2_classificacao: analise.amstar2_classificacao || null,
+        amstar2_justificativa: analise.amstar2_justificativa || null,
+        robis_resultado: analise.robis_resultado || null,
+        robis_justificativa: analise.robis_justificativa || null,
+        casp_resumo: analise.casp_resumo || null,
         limitacoes_autores: analise.limitacoes_autores || null,
         conflitos_interesse: analise.conflitos_interesse || null,
         contexto_vs_anterior: analise.contexto_vs_anterior || null,
