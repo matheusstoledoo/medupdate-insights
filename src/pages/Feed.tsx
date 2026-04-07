@@ -297,10 +297,9 @@ const Feed = () => {
                   <ArrowLeft className="h-4 w-4" /> Outros temas
                 </button>
 
-                <h1 className="font-serif text-[1.3rem] font-bold text-foreground mb-1" style={{ letterSpacing: "-0.025em" }}>
+                <h1 className="font-serif text-[1.3rem] font-bold text-foreground mb-6" style={{ letterSpacing: "-0.025em" }}>
                   {temaSelecionado}
                 </h1>
-                <p className="text-xs text-muted-foreground mb-6">Novidades desta semana</p>
 
                 {isLoading ? (
                   <div className="space-y-4">
@@ -308,58 +307,82 @@ const Feed = () => {
                       <div key={i} className="h-40 rounded-lg bg-surface-secondary animate-pulse" />
                     ))}
                   </div>
-                ) : artigos.length > 0 ? (
-                  <>
-                    <ArticleList artigos={artigos} />
-
-                    {/* Seção mensal */}
-                    {!mostrarMes ? (
-                      <button
-                        onClick={carregarMes}
-                        disabled={carregandoMes}
-                        className="w-full mt-6 py-3 text-sm text-muted-foreground border border-dashed border-border rounded-lg hover:border-primary/30 hover:text-primary transition-colors"
-                      >
-                        {carregandoMes ? "Carregando..." : "↓ Ver artigos deste mês"}
-                      </button>
-                    ) : artigosMes.length > 0 ? (
-                      <div className="mt-8">
-                        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-4 font-mono">
-                          Este mês
-                        </p>
-                        <ArticleList artigos={artigosMes} />
+                ) : (
+                  <div className="space-y-10">
+                    {/* SEÇÃO 1 — Esta semana */}
+                    <section>
+                      <div className="flex items-center gap-3 mb-4">
+                        <h2 className="text-[0.68rem] font-medium uppercase tracking-[0.1em] text-muted-foreground font-mono">
+                          Esta semana
+                        </h2>
+                        {artigos.length > 0 && (
+                          <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-white">
+                            {artigos.length} novo{artigos.length > 1 ? "s" : ""}
+                          </span>
+                        )}
                       </div>
-                    ) : null}
+                      {artigos.length > 0 ? (
+                        <ArticleList artigos={artigos} />
+                      ) : (
+                        <p className="text-sm text-muted-foreground py-4 border border-dashed border-border rounded-lg text-center">
+                          Nenhum artigo novo esta semana neste tema
+                        </p>
+                      )}
+                    </section>
 
-                    {/* Seção arquivo */}
-                    {mostrarMes && (
-                      <div className="mt-6 text-center">
-                        {!mostrarArquivo ? (
-                          <button
-                            onClick={carregarArquivo}
-                            disabled={carregandoArquivo}
-                            className="text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
-                          >
-                            {carregandoArquivo ? "Buscando..." : "🗂 Resgatar artigos anteriores"}
-                          </button>
-                        ) : artigosArquivo.length > 0 ? (
-                          <div className="mt-4">
-                            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4 text-left">
+                    {/* SEÇÃO 2 — Este mês */}
+                    <section>
+                      <div className="flex items-center gap-3 mb-4">
+                        <h2 className="text-[0.68rem] font-medium uppercase tracking-[0.1em] text-muted-foreground font-mono">
+                          Este mês
+                        </h2>
+                        {artigosMes.length > 0 && (
+                          <span className="rounded-full bg-surface-tertiary border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {artigosMes.length}
+                          </span>
+                        )}
+                      </div>
+                      {artigosMes.length > 0 ? (
+                        <ArticleList artigos={artigosMes} />
+                      ) : (
+                        <p className="text-sm text-muted-foreground py-4 border border-dashed border-border rounded-lg text-center">
+                          Nenhum artigo este mês neste tema
+                        </p>
+                      )}
+                    </section>
+
+                    {/* SEÇÃO 3 — Arquivo anual (colapsada) */}
+                    <section>
+                      <details className="group">
+                        <summary className="flex items-center gap-3 cursor-pointer list-none select-none">
+                          <h2 className="text-[0.68rem] font-medium uppercase tracking-[0.1em] text-muted-foreground font-mono hover:text-foreground transition-colors">
+                            🗂 Arquivo anual
+                          </h2>
+                          {artigosArquivo.length > 0 && (
+                            <span className="rounded-full bg-surface-tertiary border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {artigosArquivo.length}
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground group-open:hidden">
+                            (clique para expandir)
+                          </span>
+                        </summary>
+                        <div className="mt-4">
+                          <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 mb-4">
+                            <p className="text-xs text-amber-700">
                               Artigos com mais de 30 dias — podem não refletir as recomendações mais atuais
                             </p>
-                            <ArticleList artigos={artigosArquivo} />
                           </div>
-                        ) : null}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-16">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Nenhum artigo encontrado para "{temaSelecionado}" esta semana.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Use a <span className="font-medium text-primary">Busca Ativa</span> para procurar artigos específicos e adicioná-los.
-                    </p>
+                          {artigosArquivo.length > 0 ? (
+                            <ArticleList artigos={artigosArquivo} />
+                          ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              Nenhum artigo no arquivo para este tema
+                            </p>
+                          )}
+                        </div>
+                      </details>
+                    </section>
                   </div>
                 )}
               </div>
