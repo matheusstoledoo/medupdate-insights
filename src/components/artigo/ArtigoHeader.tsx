@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, AlertCircle, FileText } from "lucide-react";
 import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import GradeBadge from "@/components/GradeBadge";
@@ -7,6 +7,7 @@ import type { ArtigoData } from "./types";
 interface Props { artigo: ArtigoData; }
 
 const ArtigoHeader = ({ artigo }: Props) => {
+  const navigate = useNavigate();
   const temTextoCompleto = artigo.tem_texto_completo === true;
   const fonteTexto = artigo.fonte_texto as string | null;
 
@@ -47,6 +48,12 @@ const ArtigoHeader = ({ artigo }: Props) => {
               completa, faça upload do PDF na aba{' '}
               <span className="font-medium">Upload</span>.
             </p>
+            <button
+              onClick={() => navigate('/?tab=upload')}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors"
+            >
+              Fazer upload do PDF para análise completa →
+            </button>
           </div>
         </div>
       )}
