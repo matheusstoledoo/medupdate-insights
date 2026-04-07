@@ -506,7 +506,7 @@ const UploadArtigo = () => {
                 {textoColado.length.toLocaleString()} caracteres
               </span>
               <button
-                onClick={() => { setModoTexto(true); handleAnalyze(); }}
+                onClick={handleAnalyzeTexto}
                 className="text-sm font-medium text-primary hover:underline underline-offset-2"
               >
                 Analisar este texto →
