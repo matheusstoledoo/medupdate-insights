@@ -320,134 +320,157 @@ const UploadArtigo = () => {
   if (estado === "upload") {
     return (
       <div className="max-w-2xl mx-auto">
+        {/* MUDANÇA 1 — Cabeçalho */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-2xl font-semibold text-foreground mb-2" style={{ letterSpacing: '-0.02em' }}>Analisar um artigo</h1>
-          <p className="text-sm text-muted-foreground">
-            Faça upload de um PDF ou cole o texto do artigo
+          <h1 className="font-serif text-2xl font-semibold text-foreground mb-3" style={{ letterSpacing: '-0.02em' }}>
+            Analisar artigo por PDF
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+            Alguns artigos de alta relevância clínica — como guidelines da AHA, ACC e ESC — não estão disponíveis via PubMed Central e não podem ser acessados automaticamente pelo sistema.
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Nesses casos, baixe o PDF diretamente no site do journal (geralmente gratuito) e faça upload aqui para análise completa com todas as ferramentas metodológicas.
           </p>
         </div>
 
-        {!modoTexto ? (
-          <>
-            {/* Drag & drop area */}
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
-                dragOver
-                  ? "border-primary bg-accent-light"
-                  : "border-[hsl(var(--border))] bg-card hover:border-[hsl(40_6%_10%/0.18)]"
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileSelect(file);
-                }}
-              />
-              <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
-              <p className="text-sm font-medium text-foreground mb-1">
-                Arraste um PDF aqui ou clique para selecionar
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Máximo 10MB · Somente arquivos PDF
-              </p>
+        {/* MUDANÇA 2 — Bloco de orientação */}
+        <div className="rounded-lg border border-border bg-surface-secondary p-4 mb-6">
+          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground font-mono mb-3">
+            Quando usar o Upload
+          </p>
+          <div className="space-y-2">
+            {[
+              { icon: '📋', texto: 'Guidelines e consensos (AHA, ACC, ESC, SBC)', detalhe: 'Geralmente gratuitos no site do journal' },
+              { icon: '🔒', texto: 'Artigos pagos que você tem acesso institucional', detalhe: 'Baixe pelo seu acesso e faça upload aqui' },
+              { icon: '📄', texto: 'Artigos recebidos por colegas ou congressos', detalhe: 'Qualquer PDF de artigo científico' },
+            ].map((item) => (
+              <div key={item.texto} className="flex items-start gap-3">
+                <span className="text-base leading-tight">{item.icon}</span>
+                <div>
+                  <p className="text-sm text-foreground font-medium leading-tight">{item.texto}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.detalhe}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* MUDANÇA 3 — Drag & drop */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+            dragOver
+              ? "border-primary bg-accent-light"
+              : "border-[hsl(var(--border))] bg-card hover:border-[hsl(40_6%_10%/0.18)]"
+          }`}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileSelect(file);
+            }}
+          />
+          <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+          <p className="text-sm font-medium text-foreground mb-1">
+            Arraste um PDF aqui ou clique para selecionar
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Máximo 10MB · Somente arquivos PDF
+          </p>
+        </div>
+
+        {/* File selected preview */}
+        {arquivo && (
+          <div className="mt-4 rounded-lg border border-[hsl(var(--border))] bg-card p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{arquivo.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(arquivo.size / 1024 / 1024).toFixed(1)} MB
+                  {numPaginas !== null && ` · ${numPaginas} páginas`}
+                </p>
+              </div>
             </div>
 
-            {/* File selected preview */}
-            {arquivo && (
-              <div className="mt-4 rounded-lg border border-[hsl(var(--border))] bg-card p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{arquivo.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(arquivo.size / 1024 / 1024).toFixed(1)} MB
-                      {numPaginas !== null && ` · ${numPaginas} páginas`}
-                    </p>
-                  </div>
-                </div>
-
-                {extraindo && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Extraindo texto...
-                  </div>
-                )}
-
-                {textoExtraido !== null && !extraindo && (
-                  <>
-                    {textoExtraido.length < 200 ? (
-                      <div className="flex items-start gap-2 mt-2 p-2 rounded bg-grade-b-bg border border-grade-b-text/20">
-                        <AlertTriangle className="h-4 w-4 text-grade-b-text shrink-0 mt-0.5" />
-                        <p className="text-xs text-grade-b-text">
-                          Este PDF parece ser uma imagem escaneada. A extração de texto pode ser limitada. Considere colar o texto manualmente.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <p className="text-xs text-muted-foreground mb-1">Preview do texto extraído:</p>
-                        <p className="text-xs text-foreground/70 bg-muted/50 rounded p-2 line-clamp-3">
-                          {textoExtraido.substring(0, 300)}...
-                        </p>
-                      </div>
-                    )}
-
-                    <button
-                      onClick={handleAnalyze}
-                      disabled={textoExtraido.length < 100}
-                      className="mt-4 w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-                    >
-                      Analisar →
-                    </button>
-                  </>
-                )}
+            {extraindo && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Extraindo texto...
               </div>
             )}
 
-            {/* Toggle to text mode */}
-            <button
-              onClick={() => setModoTexto(true)}
-              className="block mx-auto mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Prefiro colar o texto do artigo
-            </button>
-          </>
-        ) : (
-          <>
-            {/* Text paste area */}
-            <textarea
-              value={textoColado}
-              onChange={(e) => setTextoColado(e.target.value)}
-              placeholder="Cole aqui o texto do artigo — abstract, métodos, resultados, discussão..."
-              className="w-full h-64 rounded-lg border-[1.5px] border-[hsl(var(--border))] bg-card p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-primary resize-none"
-            />
+            {textoExtraido !== null && !extraindo && (
+              <>
+                {textoExtraido.length < 200 ? (
+                  <div className="flex items-start gap-2 mt-2 p-2 rounded bg-grade-b-bg border border-grade-b-text/20">
+                    <AlertTriangle className="h-4 w-4 text-grade-b-text shrink-0 mt-0.5" />
+                    <p className="text-xs text-grade-b-text">
+                      Este PDF parece ser uma imagem escaneada. A extração de texto pode ser limitada. Considere colar o texto manualmente.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-2">
+                    <p className="text-xs text-muted-foreground mb-1">Preview do texto extraído:</p>
+                    <p className="text-xs text-foreground/70 bg-muted/50 rounded p-2 line-clamp-3">
+                      {textoExtraido.substring(0, 300)}...
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleAnalyze}
+                  disabled={textoExtraido.length < 100}
+                  className="mt-4 w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  Analisar →
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Separador "ou" + textarea */}
+        <div className="flex items-center gap-3 my-4">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-xs text-muted-foreground font-mono">ou</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-sm font-medium text-foreground mb-1">
+            Colar o texto do artigo
+          </p>
+          <p className="text-xs text-muted-foreground mb-3">
+            Selecione todo o texto do artigo (Ctrl+A no PDF aberto no navegador) e cole abaixo
+          </p>
+          <textarea
+            placeholder="Cole aqui o texto completo do artigo — abstract, introdução, métodos, resultados, discussão..."
+            className="w-full h-32 text-sm rounded-md border border-border bg-background px-3 py-2 resize-none placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            onChange={(e) => setTextoColado(e.target.value)}
+            value={textoColado}
+          />
+          {textoColado.length > 200 && (
             <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-muted-foreground">
-                {textoColado.length > 0 ? `${textoColado.length} caracteres` : ""}
-              </p>
+              <span className="text-xs text-muted-foreground font-mono">
+                {textoColado.length.toLocaleString()} caracteres
+              </span>
               <button
-                onClick={() => { setModoTexto(false); setTextoColado(""); }}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => { setModoTexto(true); handleAnalyze(); }}
+                className="text-sm font-medium text-primary hover:underline underline-offset-2"
               >
-                Voltar ao upload de PDF
+                Analisar este texto →
               </button>
             </div>
-            <button
-              onClick={handleAnalyze}
-              disabled={textoColado.trim().length < 100}
-              className="mt-4 w-full rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              Analisar →
-            </button>
-          </>
-        )}
+          )}
+        </div>
 
         {erro && (
           <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
@@ -487,10 +510,11 @@ const UploadArtigo = () => {
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Upload badge */}
-      <div className="mb-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
-          📄 Artigo enviado por você · Análise do texto completo
+      {/* MUDANÇA 4 — Badge de resultado */}
+      <div className="flex items-center gap-2 rounded-full px-3 py-1 w-fit bg-grade-a-bg text-grade-a-text border border-grade-a-text/20 mb-4">
+        <FileText className="h-3.5 w-3.5" />
+        <span className="text-xs font-medium">
+          Análise do texto completo · Upload manual
         </span>
       </div>
 
