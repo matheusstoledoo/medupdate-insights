@@ -128,15 +128,26 @@ const Feed = () => {
       const dataCorte = get12MonthsAgo();
 
       if (feedState === "artigos" && temaSelecionado) {
-        const { data, error } = await (supabase
-          .from("artigos")
-          .select("*") as any)
-          .eq("especialidade_tema", temaSelecionado)
-          .eq("periodo_feed", "semanal")
-          .order("data_entrada_feed", { ascending: false })
-          .limit(20);
-
-        if (!error) setArtigos(data || []);
+        const [semana, mes, arquivo] = await Promise.all([
+          (supabase.from("artigos").select("*") as any)
+            .eq("especialidade_tema", temaSelecionado)
+            .eq("periodo_feed", "semanal")
+            .order("data_entrada_feed", { ascending: false })
+            .limit(20),
+          (supabase.from("artigos").select("*") as any)
+            .eq("especialidade_tema", temaSelecionado)
+            .eq("periodo_feed", "mensal")
+            .order("data_entrada_feed", { ascending: false })
+            .limit(30),
+          (supabase.from("artigos").select("*") as any)
+            .eq("especialidade_tema", temaSelecionado)
+            .eq("periodo_feed", "arquivo")
+            .order("data_entrada_feed", { ascending: false })
+            .limit(50),
+        ]);
+        setArtigos(semana.data || []);
+        setArtigosMes(mes.data || []);
+        setArtigosArquivo(arquivo.data || []);
       }
 
       if (feedState === "top10") {
