@@ -31,13 +31,25 @@ const ArtigoHeader = ({ artigo }: Props) => {
             <FileText className="h-3.5 w-3.5" />
             Análise do texto completo · {fonteTexto}
           </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            <AlertCircle className="h-3.5 w-3.5" />
-            Análise baseada no abstract — texto completo não disponível gratuitamente
-          </span>
-        )}
+        ) : null}
       </div>
+
+      {!temTextoCompleto && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 mb-4">
+          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 mb-1">
+              Análise baseada no abstract
+            </p>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              O texto completo deste artigo não está disponível
+              gratuitamente via PubMed Central. Para uma análise
+              completa, faça upload do PDF na aba{' '}
+              <span className="font-medium">Upload</span>.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 font-mono text-[0.75rem] text-muted-foreground mb-8">
         <span className="uppercase tracking-wider">{artigo.journal}</span>

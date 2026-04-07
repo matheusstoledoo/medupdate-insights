@@ -559,9 +559,22 @@ const BuscaAtiva = () => {
                       {r.artigoLocal?.resumo_pt && (
                         <>
                           {r.analisadoDoAbstract ? (
-                            <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 mb-2 w-fit">
-                              <AlertCircle className="h-3 w-3 shrink-0" />
-                              Análise baseada no abstract
+                            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 mb-2">
+                              <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-xs font-medium text-amber-800 mb-0.5">
+                                  Análise baseada no abstract
+                                </p>
+                                <p className="text-[11px] text-amber-700 leading-relaxed">
+                                  Texto completo não disponível via PubMed Central.
+                                </p>
+                                <button
+                                  onClick={() => window.location.hash = '#upload'}
+                                  className="mt-1.5 text-[11px] text-amber-700 underline underline-offset-2 hover:text-amber-900"
+                                >
+                                  Fazer upload do PDF para análise completa →
+                                </button>
+                              </div>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-grade-a-bg text-grade-a-text border border-grade-a-text/20 mb-2 w-fit">
