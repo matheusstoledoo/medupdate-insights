@@ -50,7 +50,6 @@ const ArtigoHeader = ({ artigo }: Props) => {
           </div>
         </div>
       )}
-      </div>
 
       <div className="flex flex-wrap items-center gap-2 font-mono text-[0.75rem] text-muted-foreground mb-8">
         <span className="uppercase tracking-wider">{artigo.journal}</span>
