@@ -253,6 +253,49 @@ const UploadArtigo = () => {
     }
   }, [modoTexto, textoColado, textoExtraido, checkRateLimit, incrementRateLimit]);
 
+  const handleAnalyzeTexto = useCallback(async () => {
+    if (!checkRateLimit()) {
+      toast.error("Crie uma conta gratuita para analisar artigos ilimitados");
+      return;
+    }
+    if (!textoColado || textoColado.trim().length < 100) {
+      toast.error("Texto muito curto para análise.");
+      return;
+    }
+    setModoTexto(true);
+    setEstado("processando");
+    setLoadingMsg(0);
+    setErro(null);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const supabaseUrl = `https://${projectId}.supabase.co`;
+      const res = await fetch(`${supabaseUrl}/functions/v1/analisar-upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
+          texto: textoColado.trim().substring(0, 15000),
+          fonte: "texto",
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Erro ${res.status}`);
+      }
+      const data = await res.json();
+      setArtigo(data.artigo);
+      setEstado("resultado");
+      incrementRateLimit();
+    } catch (e) {
+      console.error("Erro na análise:", e);
+      setErro(e instanceof Error ? e.message : "Erro desconhecido");
+      setEstado("upload");
+      toast.error("Erro ao analisar artigo. Tente novamente.");
+    }
+  }, [textoColado, checkRateLimit, incrementRateLimit]);
+
   const handleReset = () => {
     setEstado("upload");
     setModoTexto(false);
