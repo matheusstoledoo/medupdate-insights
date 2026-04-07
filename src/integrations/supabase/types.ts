@@ -26,6 +26,7 @@ export type Database = {
           conflitos_interesse: string | null
           contexto_vs_anterior: string | null
           created_at: string | null
+          data_entrada_feed: string | null
           data_publicacao: string | null
           especialidade: string | null
           especialidade_tema: string | null
@@ -37,12 +38,14 @@ export type Database = {
           journal: string | null
           limitacoes_autores: string | null
           link_original: string | null
+          periodo_feed: string | null
           pmid: string | null
           questao: string | null
           resposta_correta: string | null
           resumo_pt: string | null
           rob_resultado: string | null
           score_relevancia: number | null
+          semana_publicacao: string | null
           tem_texto_completo: boolean | null
           tipo_estudo: string | null
           titulo: string
@@ -60,6 +63,7 @@ export type Database = {
           conflitos_interesse?: string | null
           contexto_vs_anterior?: string | null
           created_at?: string | null
+          data_entrada_feed?: string | null
           data_publicacao?: string | null
           especialidade?: string | null
           especialidade_tema?: string | null
@@ -71,12 +75,14 @@ export type Database = {
           journal?: string | null
           limitacoes_autores?: string | null
           link_original?: string | null
+          periodo_feed?: string | null
           pmid?: string | null
           questao?: string | null
           resposta_correta?: string | null
           resumo_pt?: string | null
           rob_resultado?: string | null
           score_relevancia?: number | null
+          semana_publicacao?: string | null
           tem_texto_completo?: boolean | null
           tipo_estudo?: string | null
           titulo: string
@@ -94,6 +100,7 @@ export type Database = {
           conflitos_interesse?: string | null
           contexto_vs_anterior?: string | null
           created_at?: string | null
+          data_entrada_feed?: string | null
           data_publicacao?: string | null
           especialidade?: string | null
           especialidade_tema?: string | null
@@ -105,12 +112,14 @@ export type Database = {
           journal?: string | null
           limitacoes_autores?: string | null
           link_original?: string | null
+          periodo_feed?: string | null
           pmid?: string | null
           questao?: string | null
           resposta_correta?: string | null
           resumo_pt?: string | null
           rob_resultado?: string | null
           score_relevancia?: number | null
+          semana_publicacao?: string | null
           tem_texto_completo?: boolean | null
           tipo_estudo?: string | null
           titulo?: string
@@ -268,6 +277,7 @@ export type Database = {
     }
     Functions: {
       atualizar_streak: { Args: { p_usuario_id: string }; Returns: undefined }
+      mover_artigos_entre_periodos: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

@@ -32,7 +32,7 @@ const TEMAS_QUERIES: Record<string, string> = {
 };
 
 const FILTROS_BASE =
-  ' AND (randomized controlled trial[pt] OR meta-analysis[pt] OR systematic review[pt] OR practice guideline[pt]) AND ("last 12 months"[PDat]) AND (humans[MeSH])';
+  ' AND (randomized controlled trial[pt] OR meta-analysis[pt] OR systematic review[pt] OR practice guideline[pt]) AND ("last 30 days"[PDat]) AND (humans[MeSH])';
 
 async function tentarPMC(
   pmid: string
@@ -286,6 +286,8 @@ Deno.serve(async (req) => {
             url_texto_completo: urlUsada,
             fonte_texto: fonteUsada,
             data_publicacao: anoFinal ? `${anoFinal}-01-01` : null,
+            periodo_feed: 'semanal',
+            data_entrada_feed: new Date().toISOString(),
           });
 
           if (insertErr) {
