@@ -300,7 +300,7 @@ const Feed = () => {
                 <h1 className="font-serif text-[1.3rem] font-bold text-foreground mb-1" style={{ letterSpacing: "-0.025em" }}>
                   {temaSelecionado}
                 </h1>
-                <p className="text-xs text-muted-foreground mb-6">Últimos 12 meses · Ordenado por relevância</p>
+                <p className="text-xs text-muted-foreground mb-6">Novidades desta semana</p>
 
                 {isLoading ? (
                   <div className="space-y-4">
@@ -309,11 +309,53 @@ const Feed = () => {
                     ))}
                   </div>
                 ) : artigos.length > 0 ? (
-                  <ArticleList artigos={artigos} />
+                  <>
+                    <ArticleList artigos={artigos} />
+
+                    {/* Seção mensal */}
+                    {!mostrarMes ? (
+                      <button
+                        onClick={carregarMes}
+                        disabled={carregandoMes}
+                        className="w-full mt-6 py-3 text-sm text-muted-foreground border border-dashed border-border rounded-lg hover:border-primary/30 hover:text-primary transition-colors"
+                      >
+                        {carregandoMes ? "Carregando..." : "↓ Ver artigos deste mês"}
+                      </button>
+                    ) : artigosMes.length > 0 ? (
+                      <div className="mt-8">
+                        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-4 font-mono">
+                          Este mês
+                        </p>
+                        <ArticleList artigos={artigosMes} />
+                      </div>
+                    ) : null}
+
+                    {/* Seção arquivo */}
+                    {mostrarMes && (
+                      <div className="mt-6 text-center">
+                        {!mostrarArquivo ? (
+                          <button
+                            onClick={carregarArquivo}
+                            disabled={carregandoArquivo}
+                            className="text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
+                          >
+                            {carregandoArquivo ? "Buscando..." : "🗂 Resgatar artigos anteriores"}
+                          </button>
+                        ) : artigosArquivo.length > 0 ? (
+                          <div className="mt-4">
+                            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4 text-left">
+                              Artigos com mais de 30 dias — podem não refletir as recomendações mais atuais
+                            </p>
+                            <ArticleList artigos={artigosArquivo} />
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-16">
                     <p className="text-sm text-muted-foreground mb-2">
-                      Nenhum artigo encontrado para "{temaSelecionado}" nos últimos 12 meses.
+                      Nenhum artigo encontrado para "{temaSelecionado}" esta semana.
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Use a <span className="font-medium text-primary">Busca Ativa</span> para procurar artigos específicos e adicioná-los.
