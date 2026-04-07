@@ -95,10 +95,21 @@ const Feed = () => {
   const [temaSelecionado, setTemaSelecionado] = useState<string>("");
   const [artigos, setArtigos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [artigosMes, setArtigosMes] = useState<any[]>([]);
+  const [artigosArquivo, setArtigosArquivo] = useState<any[]>([]);
+  const [mostrarMes, setMostrarMes] = useState(false);
+  const [mostrarArquivo, setMostrarArquivo] = useState(false);
+  const [carregandoMes, setCarregandoMes] = useState(false);
+  const [carregandoArquivo, setCarregandoArquivo] = useState(false);
 
   const selecionarTema = (tema: string) => {
     setTemaSelecionado(tema);
     setFeedState("artigos");
+    setArtigos([]);
+    setArtigosMes([]);
+    setArtigosArquivo([]);
+    setMostrarMes(false);
+    setMostrarArquivo(false);
   };
 
   const abrirTop10 = () => {
@@ -108,7 +119,39 @@ const Feed = () => {
   const voltarTemas = () => {
     setFeedState("temas");
     setArtigos([]);
+    setArtigosMes([]);
+    setArtigosArquivo([]);
+    setMostrarMes(false);
+    setMostrarArquivo(false);
     setTemaSelecionado("");
+  };
+
+  const carregarMes = async () => {
+    setCarregandoMes(true);
+    const { data } = await (supabase
+      .from("artigos")
+      .select("*") as any)
+      .eq("especialidade_tema", temaSelecionado)
+      .eq("periodo_feed", "mensal")
+      .order("data_entrada_feed", { ascending: false })
+      .limit(30);
+    setArtigosMes(data || []);
+    setMostrarMes(true);
+    setCarregandoMes(false);
+  };
+
+  const carregarArquivo = async () => {
+    setCarregandoArquivo(true);
+    const { data } = await (supabase
+      .from("artigos")
+      .select("*") as any)
+      .eq("especialidade_tema", temaSelecionado)
+      .eq("periodo_feed", "arquivo")
+      .order("data_entrada_feed", { ascending: false })
+      .limit(50);
+    setArtigosArquivo(data || []);
+    setMostrarArquivo(true);
+    setCarregandoArquivo(false);
   };
 
   // Fetch articles when state changes
@@ -125,10 +168,9 @@ const Feed = () => {
           .from("artigos")
           .select("*") as any)
           .eq("especialidade_tema", temaSelecionado)
-          .gte("data_publicacao", dataCorte)
-          .order("score_relevancia", { ascending: false })
-          .order("data_publicacao", { ascending: false })
-          .limit(30);
+          .eq("periodo_feed", "semanal")
+          .order("data_entrada_feed", { ascending: false })
+          .limit(20);
 
         if (!error) setArtigos(data || []);
       }
