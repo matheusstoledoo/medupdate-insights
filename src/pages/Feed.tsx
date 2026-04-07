@@ -121,10 +121,10 @@ const Feed = () => {
       const dataCorte = get12MonthsAgo();
 
       if (feedState === "artigos" && temaSelecionado) {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase
           .from("artigos")
-          .select("*")
-          .eq("especialidade_tema" as any, temaSelecionado)
+          .select("*") as any)
+          .eq("especialidade_tema", temaSelecionado)
           .gte("data_publicacao", dataCorte)
           .order("score_relevancia", { ascending: false })
           .order("data_publicacao", { ascending: false })
