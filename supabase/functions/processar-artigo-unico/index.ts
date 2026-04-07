@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: `${promptCtx}\n\nRetorne SOMENTE um JSON válido:\n{\n"titulo":"título em português",\n"journal":"nome do journal",\n"ano":2024,\n"resumo_pt":"3-4 frases em português para especialistas",\n"tipo_estudo":"tipo do estudo",\n"grade":"Alto, Moderado, Baixo ou Muito baixo",\n"grade_justificativa":"uma frase",\n"rob_resultado":"Baixo risco, Algumas preocupações ou Alto risco",\n"analise_metodologica":"4-5 frases detalhadas",\n"vieses_detalhados":"avaliação por domínio RoB 2",\n"limitacoes_autores":"limitações declaradas pelos autores",\n"conflitos_interesse":"conflitos e financiamento",\n"contexto_vs_anterior":"relação com evidência anterior",\n"questao":"caso clínico 2-3 frases",\n"alt_a":"","alt_b":"","alt_c":"","alt_d":"",\n"resposta_correta":"A, B, C ou D",\n"feedback_quiz":"2-3 frases com impacto clínico"\n}\n\nArtigo (${fonteTexto}, ${textoAnalise.length} chars):\n${textoAnalise}`,
+            content: `${promptCtx}\n\nRetorne SOMENTE um JSON válido:\n{\n"titulo":"título em português",\n"journal":"nome do journal",\n"ano":2024,\n"tipo_estudo":"tipo exato do estudo",\n"resumo_pt":"2-3 frases sintetizando o artigo inteiro",\n"introducao_resumo":"contexto clínico e justificativa do estudo em 2-3 frases",\n"metodologia_detalhada":"descrição detalhada: desenho do estudo, população, critérios de inclusão/exclusão, intervenção, desfecho primário e secundários, tamanho amostral, método de randomização, cegamento, análise estatística",\n"resultados_principais":"resultados numéricos principais com IC 95% e valores de p quando disponíveis, desfecho primário e secundários relevantes, eventos adversos significativos",\n"conclusao_autores":"conclusão declarada pelos autores + implicação clínica direta para a prática",\n"implicacao_clinica":"impacto prático direto na conduta clínica em 1-2 frases",\n"grade":"Alto, Moderado, Baixo ou Muito baixo",\n"grade_justificativa":"justificativa específica em uma frase",\n"rob_resultado":"Baixo risco, Algumas preocupações ou Alto risco",\n"analise_metodologica":"avaliação crítica independente da metodologia em 3-4 frases",\n"vieses_detalhados":"avaliação por domínio RoB 2: D1-randomização, D2-desvios, D3-dados faltantes, D4-mensuração, D5-seleção de resultados",\n"limitacoes_autores":"limitações declaradas pelos próprios autores",\n"conflitos_interesse":"conflitos de interesse e financiamento reportados",\n"contexto_vs_anterior":"como este estudo muda ou confirma a evidência anterior",\n"questao":"caso clínico de 2-3 frases para quiz",\n"alt_a":"","alt_b":"","alt_c":"","alt_d":"",\n"resposta_correta":"A, B, C ou D",\n"feedback_quiz":"explicação da resposta com impacto no guideline"\n}\n\nArtigo (${fonteTexto}, ${textoAnalise.length} chars):\n${textoAnalise}`,
           },
         ],
       }),
@@ -227,6 +227,11 @@ Deno.serve(async (req) => {
         pmid,
         link_original: linkFinal,
         resumo_pt: analise.resumo_pt || null,
+        introducao_resumo: analise.introducao_resumo || null,
+        metodologia_detalhada: analise.metodologia_detalhada || null,
+        resultados_principais: analise.resultados_principais || null,
+        conclusao_autores: analise.conclusao_autores || null,
+        implicacao_clinica: analise.implicacao_clinica || null,
         tipo_estudo: analise.tipo_estudo || null,
         grade: analise.grade || null,
         grade_justificativa: analise.grade_justificativa || null,
