@@ -198,5 +198,5 @@ export async function buscarTextoCompletoNoFrontend(
   }
 
   log('Nenhum texto completo disponível — será usado abstract');
-  return { texto: '', fonte: 'abstract', completo: false, url: null };
+  return { texto: '', fonte: 'abstract', completo: false, url: null, motivo: 'Texto completo não disponível gratuitamente' };
 }

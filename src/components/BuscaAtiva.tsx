@@ -33,6 +33,7 @@ interface PubMedResult {
   artigoLocal?: { id: string; grade?: string | null; resumo_pt?: string | null } | null;
   analisando?: boolean;
   statusAnalise?: string;
+  analisadoDoAbstract?: boolean;
 }
 
 interface Conceito {
@@ -282,6 +283,7 @@ const BuscaAtiva = () => {
                 analisando: false,
                 statusAnalise: undefined,
                 artigoLocal: { id: data.id, grade: data.grade, resumo_pt: data.resumo_pt },
+                analisadoDoAbstract: !fullText.completo,
               }
             : r
         )
@@ -592,9 +594,17 @@ const BuscaAtiva = () => {
 
                       {/* Show resumo if analyzed */}
                       {r.artigoLocal?.resumo_pt && (
-                        <p className="text-xs text-foreground/80 mb-3 leading-relaxed">
-                          {r.artigoLocal.resumo_pt}
-                        </p>
+                        <>
+                          {r.analisadoDoAbstract && (
+                            <div className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium bg-grade-b-bg text-grade-b-text mb-2">
+                              <AlertCircle className="h-3 w-3 shrink-0" />
+                              Texto completo não disponível — análise baseada no abstract
+                            </div>
+                          )}
+                          <p className="text-xs text-foreground/80 mb-3 leading-relaxed">
+                            {r.artigoLocal.resumo_pt}
+                          </p>
+                        </>
                       )}
 
                       {/* Show abstract if no local analysis */}
