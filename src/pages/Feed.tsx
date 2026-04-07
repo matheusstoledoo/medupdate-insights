@@ -98,6 +98,14 @@ const Feed = () => {
   const [artigosMes, setArtigosMes] = useState<any[]>([]);
   const [artigosArquivo, setArtigosArquivo] = useState<any[]>([]);
 
+  // Handle ?tab=upload from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'upload') {
+      setModo('upload');
+    }
+  }, []);
+
   const selecionarTema = (tema: string) => {
     setTemaSelecionado(tema);
     setFeedState("artigos");
