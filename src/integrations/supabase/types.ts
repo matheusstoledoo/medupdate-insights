@@ -23,6 +23,7 @@ export type Database = {
           analise_metodologica: string | null
           ano: number | null
           citacoes: number | null
+          conclusao_autores: string | null
           conflitos_interesse: string | null
           contexto_vs_anterior: string | null
           created_at: string | null
@@ -35,13 +36,17 @@ export type Database = {
           grade: string | null
           grade_justificativa: string | null
           id: string
+          implicacao_clinica: string | null
+          introducao_resumo: string | null
           journal: string | null
           limitacoes_autores: string | null
           link_original: string | null
+          metodologia_detalhada: string | null
           periodo_feed: string | null
           pmid: string | null
           questao: string | null
           resposta_correta: string | null
+          resultados_principais: string | null
           resumo_pt: string | null
           rob_resultado: string | null
           score_relevancia: number | null
@@ -60,6 +65,7 @@ export type Database = {
           analise_metodologica?: string | null
           ano?: number | null
           citacoes?: number | null
+          conclusao_autores?: string | null
           conflitos_interesse?: string | null
           contexto_vs_anterior?: string | null
           created_at?: string | null
@@ -72,13 +78,17 @@ export type Database = {
           grade?: string | null
           grade_justificativa?: string | null
           id?: string
+          implicacao_clinica?: string | null
+          introducao_resumo?: string | null
           journal?: string | null
           limitacoes_autores?: string | null
           link_original?: string | null
+          metodologia_detalhada?: string | null
           periodo_feed?: string | null
           pmid?: string | null
           questao?: string | null
           resposta_correta?: string | null
+          resultados_principais?: string | null
           resumo_pt?: string | null
           rob_resultado?: string | null
           score_relevancia?: number | null
@@ -97,6 +107,7 @@ export type Database = {
           analise_metodologica?: string | null
           ano?: number | null
           citacoes?: number | null
+          conclusao_autores?: string | null
           conflitos_interesse?: string | null
           contexto_vs_anterior?: string | null
           created_at?: string | null
@@ -109,13 +120,17 @@ export type Database = {
           grade?: string | null
           grade_justificativa?: string | null
           id?: string
+          implicacao_clinica?: string | null
+          introducao_resumo?: string | null
           journal?: string | null
           limitacoes_autores?: string | null
           link_original?: string | null
+          metodologia_detalhada?: string | null
           periodo_feed?: string | null
           pmid?: string | null
           questao?: string | null
           resposta_correta?: string | null
+          resultados_principais?: string | null
           resumo_pt?: string | null
           rob_resultado?: string | null
           score_relevancia?: number | null
