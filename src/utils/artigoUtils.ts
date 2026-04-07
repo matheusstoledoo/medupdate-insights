@@ -36,6 +36,7 @@ export interface ResultadoTextoCompleto {
   fonte: string;
   completo: boolean;
   url: string | null;
+  motivo?: string;
 }
 
 export async function buscarTextoCompletoNoFrontend(
