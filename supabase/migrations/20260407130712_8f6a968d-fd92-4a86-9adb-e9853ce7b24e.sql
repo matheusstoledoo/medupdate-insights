@@ -1,0 +1,1 @@
+ALTER TABLE public.artigos ADD COLUMN IF NOT EXISTS especialidade_tema text;

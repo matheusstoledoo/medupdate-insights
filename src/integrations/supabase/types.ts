@@ -28,6 +28,7 @@ export type Database = {
           created_at: string | null
           data_publicacao: string | null
           especialidade: string | null
+          especialidade_tema: string | null
           feedback_quiz: string | null
           fonte_texto: string | null
           grade: string | null
@@ -61,6 +62,7 @@ export type Database = {
           created_at?: string | null
           data_publicacao?: string | null
           especialidade?: string | null
+          especialidade_tema?: string | null
           feedback_quiz?: string | null
           fonte_texto?: string | null
           grade?: string | null
@@ -94,6 +96,7 @@ export type Database = {
           created_at?: string | null
           data_publicacao?: string | null
           especialidade?: string | null
+          especialidade_tema?: string | null
           feedback_quiz?: string | null
           fonte_texto?: string | null
           grade?: string | null
