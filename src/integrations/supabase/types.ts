@@ -20,8 +20,11 @@ export type Database = {
           alt_b: string | null
           alt_c: string | null
           alt_d: string | null
+          amstar2_classificacao: string | null
+          amstar2_justificativa: string | null
           analise_metodologica: string | null
           ano: number | null
+          casp_resumo: string | null
           citacoes: number | null
           conclusao_autores: string | null
           conflitos_interesse: string | null
@@ -32,12 +35,15 @@ export type Database = {
           especialidade: string | null
           especialidade_tema: string | null
           feedback_quiz: string | null
+          ferramentas_usadas: string | null
           fonte_texto: string | null
           grade: string | null
           grade_justificativa: string | null
           id: string
           implicacao_clinica: string | null
           introducao_resumo: string | null
+          jadad_justificativa: string | null
+          jadad_score: number | null
           journal: string | null
           limitacoes_autores: string | null
           link_original: string | null
@@ -49,6 +55,8 @@ export type Database = {
           resultados_principais: string | null
           resumo_pt: string | null
           rob_resultado: string | null
+          robis_justificativa: string | null
+          robis_resultado: string | null
           score_relevancia: number | null
           semana_publicacao: string | null
           tem_texto_completo: boolean | null
@@ -62,8 +70,11 @@ export type Database = {
           alt_b?: string | null
           alt_c?: string | null
           alt_d?: string | null
+          amstar2_classificacao?: string | null
+          amstar2_justificativa?: string | null
           analise_metodologica?: string | null
           ano?: number | null
+          casp_resumo?: string | null
           citacoes?: number | null
           conclusao_autores?: string | null
           conflitos_interesse?: string | null
@@ -74,12 +85,15 @@ export type Database = {
           especialidade?: string | null
           especialidade_tema?: string | null
           feedback_quiz?: string | null
+          ferramentas_usadas?: string | null
           fonte_texto?: string | null
           grade?: string | null
           grade_justificativa?: string | null
           id?: string
           implicacao_clinica?: string | null
           introducao_resumo?: string | null
+          jadad_justificativa?: string | null
+          jadad_score?: number | null
           journal?: string | null
           limitacoes_autores?: string | null
           link_original?: string | null
@@ -91,6 +105,8 @@ export type Database = {
           resultados_principais?: string | null
           resumo_pt?: string | null
           rob_resultado?: string | null
+          robis_justificativa?: string | null
+          robis_resultado?: string | null
           score_relevancia?: number | null
           semana_publicacao?: string | null
           tem_texto_completo?: boolean | null
@@ -104,8 +120,11 @@ export type Database = {
           alt_b?: string | null
           alt_c?: string | null
           alt_d?: string | null
+          amstar2_classificacao?: string | null
+          amstar2_justificativa?: string | null
           analise_metodologica?: string | null
           ano?: number | null
+          casp_resumo?: string | null
           citacoes?: number | null
           conclusao_autores?: string | null
           conflitos_interesse?: string | null
@@ -116,12 +135,15 @@ export type Database = {
           especialidade?: string | null
           especialidade_tema?: string | null
           feedback_quiz?: string | null
+          ferramentas_usadas?: string | null
           fonte_texto?: string | null
           grade?: string | null
           grade_justificativa?: string | null
           id?: string
           implicacao_clinica?: string | null
           introducao_resumo?: string | null
+          jadad_justificativa?: string | null
+          jadad_score?: number | null
           journal?: string | null
           limitacoes_autores?: string | null
           link_original?: string | null
@@ -133,6 +155,8 @@ export type Database = {
           resultados_principais?: string | null
           resumo_pt?: string | null
           rob_resultado?: string | null
+          robis_justificativa?: string | null
+          robis_resultado?: string | null
           score_relevancia?: number | null
           semana_publicacao?: string | null
           tem_texto_completo?: boolean | null
