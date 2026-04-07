@@ -97,10 +97,6 @@ const Feed = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [artigosMes, setArtigosMes] = useState<any[]>([]);
   const [artigosArquivo, setArtigosArquivo] = useState<any[]>([]);
-  const [mostrarMes, setMostrarMes] = useState(false);
-  const [mostrarArquivo, setMostrarArquivo] = useState(false);
-  const [carregandoMes, setCarregandoMes] = useState(false);
-  const [carregandoArquivo, setCarregandoArquivo] = useState(false);
 
   const selecionarTema = (tema: string) => {
     setTemaSelecionado(tema);
@@ -108,8 +104,6 @@ const Feed = () => {
     setArtigos([]);
     setArtigosMes([]);
     setArtigosArquivo([]);
-    setMostrarMes(false);
-    setMostrarArquivo(false);
   };
 
   const abrirTop10 = () => {
@@ -121,37 +115,7 @@ const Feed = () => {
     setArtigos([]);
     setArtigosMes([]);
     setArtigosArquivo([]);
-    setMostrarMes(false);
-    setMostrarArquivo(false);
     setTemaSelecionado("");
-  };
-
-  const carregarMes = async () => {
-    setCarregandoMes(true);
-    const { data } = await (supabase
-      .from("artigos")
-      .select("*") as any)
-      .eq("especialidade_tema", temaSelecionado)
-      .eq("periodo_feed", "mensal")
-      .order("data_entrada_feed", { ascending: false })
-      .limit(30);
-    setArtigosMes(data || []);
-    setMostrarMes(true);
-    setCarregandoMes(false);
-  };
-
-  const carregarArquivo = async () => {
-    setCarregandoArquivo(true);
-    const { data } = await (supabase
-      .from("artigos")
-      .select("*") as any)
-      .eq("especialidade_tema", temaSelecionado)
-      .eq("periodo_feed", "arquivo")
-      .order("data_entrada_feed", { ascending: false })
-      .limit(50);
-    setArtigosArquivo(data || []);
-    setMostrarArquivo(true);
-    setCarregandoArquivo(false);
   };
 
   // Fetch articles when state changes
