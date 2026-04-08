@@ -6,6 +6,157 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function buildPrompt(textoParaAnalise: string, fonteUsada: string, temTextoCompleto: boolean): string {
+  return `Você é um cardiologista especialista em medicina baseada em evidências. Você recebeu o ${temTextoCompleto ? `texto completo (fonte: ${fonteUsada})` : 'ABSTRACT apenas'} de um artigo científico e deve gerar uma análise estruturada, robusta e clinicamente útil, suficiente para que um médico possa entender e interpretar o estudo sem precisar ler o original.
+
+${!temTextoCompleto ? 'ATENÇÃO: Você tem apenas o abstract. Faça a melhor análise possível. Indique claramente quando não foi possível avaliar por falta de informação.' : ''}
+
+## Regras obrigatórias:
+- Nunca diga que dados estão ausentes se eles estiverem presentes no texto fornecido
+- Sempre inclua valores numéricos exatos (n, %, HR, OR, RR, IC 95%, p-valor) quando disponíveis no texto
+- A análise deve permitir que um leitor replique mentalmente o estudo e julgue sua validade
+- Linguagem técnica em português, acessível a médicos
+
+## Identificação do tipo de estudo:
+Identifique o tipo exato:
+- Ensaio Clínico Randomizado (RCT)
+- Revisão Sistemática ou Meta-análise
+- Estudo de Coorte
+- Estudo Caso-Controle
+- Estudo Transversal
+- Guideline / Consenso
+- Outro (especificar)
+
+## Ferramentas de avaliação por tipo:
+SE for RCT: aplique RoB 2 (5 domínios), Jadad Scale (0-5), CASP RCT
+SE for Revisão Sistemática/Meta-análise: aplique AMSTAR 2, ROBIS, CASP SR, GRADE
+SE for Coorte: aplique CASP Cohort, Newcastle-Ottawa Scale
+SE for Caso-Controle: aplique CASP Case-Control, Newcastle-Ottawa adaptada
+SE for Guideline/Consenso: aplique AGREE II resumido
+
+## Retorne SOMENTE este JSON válido, sem texto antes ou depois:
+{
+  "metodologia": {
+    "delineamento": "Tipo exato do estudo",
+    "populacao": {
+      "descricao": "Descrição detalhada",
+      "n_total": "número total",
+      "caracteristicas_basais": "Idade, % mulheres, comorbidades — com números",
+      "criterios_inclusao": "Principais critérios com detalhes numéricos",
+      "criterios_exclusao": "Principais critérios de exclusão"
+    },
+    "intervencao": "Droga/procedimento, dose exata, via, duração",
+    "comparador": "Placebo ou comparador ativo com detalhes",
+    "desfecho_primario": "Definição exata do desfecho primário",
+    "desfechos_secundarios": "Lista dos principais desfechos secundários",
+    "seguimento": "Duração e visitas de seguimento",
+    "randomizacao": "Método, estratificação, razão de alocação",
+    "analise_estatistica": "Teste primário, modelo, potência, alfa"
+  },
+  "resultados": {
+    "desfecho_primario": {
+      "grupo_intervencao": "n (%) que atingiram o desfecho",
+      "grupo_controle": "n (%) que atingiram o desfecho",
+      "estimativa": "HR/OR/RR com IC 95% e p-valor",
+      "interpretacao": "O que esse resultado significa clinicamente"
+    },
+    "desfechos_secundarios": [
+      { "nome": "Nome", "resultado": "n (%), HR/OR/RR, IC 95%, p-valor", "interpretacao": "breve interpretação" }
+    ],
+    "seguranca": {
+      "eventos_adversos_principais": "Incidências comparativas nos dois grupos",
+      "descontinuacoes": "Taxa de descontinuação por eventos adversos"
+    },
+    "analises_pre_especificadas": "Subgrupos com resultados numéricos"
+  },
+  "conclusao": {
+    "conclusao_dos_autores": "O que os autores concluíram exatamente",
+    "implicacao_clinica": "O que muda na prática clínica",
+    "limitacoes": "Limitações metodológicas mencionadas",
+    "contexto_evidencia": "Como se encaixa na evidência existente"
+  },
+  "titulo": "título completo em português",
+  "journal": "nome do periódico",
+  "ano": 2024,
+  "tipo_estudo": "tipo exato",
+  "ferramentas_usadas": "ferramentas aplicadas separadas por vírgula",
+  "resumo_pt": "3-4 frases sintetizando o artigo",
+  "grade": "Alto, Moderado, Baixo ou Muito baixo",
+  "grade_justificativa": "justificativa GRADE",
+  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",
+  "vieses_detalhados": "D1-D5 ou adaptado por tipo",
+  "jadad_score": null,
+  "jadad_justificativa": "pontuação detalhada se RCT",
+  "amstar2_classificacao": null,
+  "amstar2_justificativa": "se revisão sistemática",
+  "robis_resultado": null,
+  "robis_justificativa": "se revisão sistemática",
+  "analise_metodologica": "avaliação crítica independente em 3-4 frases",
+  "limitacoes_autores": "limitações declaradas pelos autores",
+  "conflitos_interesse": "conflitos e financiamento",
+  "contexto_vs_anterior": "como muda a evidência prévia",
+  "casp_resumo": "avaliação CASP resumida",
+  "introducao_resumo": "contexto e justificativa em 2-3 frases",
+  "metodologia_detalhada": "desenho, população, intervenção, desfechos, seguimento — texto corrido",
+  "resultados_principais": "desfecho primário com números, IC 95%, p-valor. Secundários. Adversos. NNT/NNH.",
+  "conclusao_autores": "conclusão declarada",
+  "implicacao_clinica": "impacto na prática em 1-2 frases",
+  "questao": "caso clínico de 2-3 frases",
+  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+  "resposta_correta": "A, B, C ou D",
+  "feedback_quiz": "explicação com referência aos resultados"
+}
+
+Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
+${textoParaAnalise}`;
+}
+
+function buildInsertPayload(parsed: Record<string, any>, extras: Record<string, any>) {
+  const analiseCompleta: Record<string, any> = {};
+  if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
+  if (parsed.resultados) analiseCompleta.resultados = parsed.resultados;
+  if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
+
+  return {
+    titulo: parsed.titulo || extras.titulo || "Artigo sem título",
+    journal: parsed.journal || extras.journal || null,
+    ano: parsed.ano || extras.ano || new Date().getFullYear(),
+    especialidade: "Cardiologia",
+    resumo_pt: parsed.resumo_pt || null,
+    introducao_resumo: parsed.introducao_resumo || null,
+    metodologia_detalhada: parsed.metodologia_detalhada || null,
+    resultados_principais: parsed.resultados_principais || null,
+    conclusao_autores: parsed.conclusao_autores || parsed.conclusao?.conclusao_dos_autores || null,
+    implicacao_clinica: parsed.implicacao_clinica || parsed.conclusao?.implicacao_clinica || null,
+    tipo_estudo: parsed.tipo_estudo || parsed.metodologia?.delineamento || null,
+    ferramentas_usadas: parsed.ferramentas_usadas || null,
+    grade: parsed.grade || null,
+    grade_justificativa: parsed.grade_justificativa || null,
+    rob_resultado: parsed.rob_resultado || null,
+    analise_metodologica: parsed.analise_metodologica || null,
+    contexto_vs_anterior: parsed.contexto_vs_anterior || parsed.conclusao?.contexto_evidencia || null,
+    vieses_detalhados: parsed.vieses_detalhados || null,
+    jadad_score: parsed.jadad_score || null,
+    jadad_justificativa: parsed.jadad_justificativa || null,
+    amstar2_classificacao: parsed.amstar2_classificacao || null,
+    amstar2_justificativa: parsed.amstar2_justificativa || null,
+    robis_resultado: parsed.robis_resultado || null,
+    robis_justificativa: parsed.robis_justificativa || null,
+    casp_resumo: parsed.casp_resumo || null,
+    limitacoes_autores: parsed.limitacoes_autores || parsed.conclusao?.limitacoes || null,
+    conflitos_interesse: parsed.conflitos_interesse || null,
+    questao: parsed.questao || null,
+    alt_a: parsed.alt_a || null,
+    alt_b: parsed.alt_b || null,
+    alt_c: parsed.alt_c || null,
+    alt_d: parsed.alt_d || null,
+    resposta_correta: parsed.resposta_correta || null,
+    feedback_quiz: parsed.feedback_quiz || null,
+    analise_completa: Object.keys(analiseCompleta).length > 0 ? analiseCompleta : null,
+    ...extras,
+  };
+}
+
 async function buscarPMCID(pmid: string): Promise<string | null> {
   try {
     const resp = await fetch(
@@ -14,9 +165,7 @@ async function buscarPMCID(pmid: string): Promise<string | null> {
     );
     if (!resp.ok) return null;
     const data = await resp.json();
-    const pmcid = data.records?.[0]?.pmcid || null;
-    console.log(`[PMC-LOOKUP] ${pmcid || "não encontrado"}`);
-    return pmcid;
+    return data.records?.[0]?.pmcid || null;
   } catch {
     return null;
   }
@@ -55,29 +204,25 @@ Deno.serve(async (req) => {
 
     console.log(`[INÍCIO] PMID: ${pmid}`);
 
-    // Check if already exists
     const { data: existing } = await supabase
       .from("artigos")
       .select("id, resumo_pt, grade")
       .eq("pmid", pmid)
       .maybeSingle();
     if (existing) {
-      console.log(`[INÍCIO] Já existe: ${existing.id}`);
       return new Response(
         JSON.stringify({ id: existing.id, resumo_pt: existing.resumo_pt, grade: existing.grade, already_existed: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ETAPA 1 — Buscar metadados e abstract via EFetch
-    console.log(`[ETAPA 1] EFetch para PMID ${pmid}`);
+    // ETAPA 1 — EFetch metadata
     const efetchResp = await fetch(
       `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml&email=medupdate@app.com`,
       { signal: AbortSignal.timeout(20000) }
     );
     if (!efetchResp.ok) throw new Error(`EFetch HTTP ${efetchResp.status}`);
     const xml = await efetchResp.text();
-    console.log(`[ETAPA 1] XML: ${xml.length} chars`);
 
     const titulo = xml.match(/<ArticleTitle>([^<]+)<\/ArticleTitle>/)?.[1]?.trim() || "";
     const journal =
@@ -94,28 +239,21 @@ Deno.serve(async (req) => {
       .join("\n\n")
       .trim();
 
-    console.log(`[ETAPA 1] Título: ${titulo.substring(0, 80)} | Journal: ${journal} | Ano: ${ano}`);
-    console.log(`[ETAPA 1] PMCID no XML: ${pmcidXml || "não encontrado"} | Abstract: ${abstractText.length} chars`);
-
-    // ETAPA 2 — Obter texto completo
+    // ETAPA 2 — Full text
     let textoAnalise = abstractText;
     let temTextoCompleto = false;
     let fonteTexto = "abstract";
     let urlTextoCompleto: string | null = null;
 
-    // Prioridade 1: texto enviado pelo browser (frontend)
     if (textoFrontend && textoFrontend.length > 3000) {
-      textoAnalise = textoFrontend.substring(0, 12000);
+      textoAnalise = textoFrontend.substring(0, 15000);
       temTextoCompleto = true;
       fonteTexto = fonteFrontend || "Texto completo";
-      console.log(`[ETAPA 2] ✓ Texto do frontend: ${textoAnalise.length} chars (${fonteTexto})`);
     }
 
-    // Prioridade 2: PMC via API do servidor
     if (!temTextoCompleto) {
       const pmcid = pmcidXml || (await buscarPMCID(pmid));
       if (pmcid) {
-        console.log(`[ETAPA 2] Tentando PMC: ${pmcid}`);
         try {
           const pmcResp = await fetch(
             `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext&email=medupdate@app.com`,
@@ -123,24 +261,20 @@ Deno.serve(async (req) => {
           );
           if (pmcResp.ok) {
             const pmcTexto = await pmcResp.text();
-            console.log(`[ETAPA 2] PMC texto: ${pmcTexto.length} chars`);
             if (pmcTexto.length > 3000) {
-              textoAnalise = pmcTexto.substring(0, 12000);
+              textoAnalise = pmcTexto.substring(0, 15000);
               temTextoCompleto = true;
               fonteTexto = "PubMed Central";
               urlTextoCompleto = `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`;
-              console.log(`[ETAPA 2] ✓ Texto completo via PMC`);
             }
           }
         } catch (e) {
-          console.log(`[ETAPA 2] PMC erro: ${e}`);
+          console.log(`[PMC] erro: ${e}`);
         }
       }
     }
 
-    // Prioridade 3: Europa PMC
     if (!temTextoCompleto) {
-      console.log(`[ETAPA 2] Tentando Europa PMC`);
       try {
         const europaResp = await fetch(
           `https://www.ebi.ac.uk/europepmc/webservices/rest/${pmid}/fullTextXML?source=MED`,
@@ -148,106 +282,23 @@ Deno.serve(async (req) => {
         );
         if (europaResp.ok) {
           const europaXml = await europaResp.text();
-          const textoLimpo = europaXml
-            .replace(/<[^>]+>/g, " ")
-            .replace(/\s{3,}/g, "\n\n")
-            .trim();
-          console.log(`[ETAPA 2] Europa PMC: ${textoLimpo.length} chars`);
+          const textoLimpo = europaXml.replace(/<[^>]+>/g, " ").replace(/\s{3,}/g, "\n\n").trim();
           if (textoLimpo.length > 3000) {
-            textoAnalise = textoLimpo.substring(0, 12000);
+            textoAnalise = textoLimpo.substring(0, 15000);
             temTextoCompleto = true;
             fonteTexto = "Europe PMC";
             urlTextoCompleto = `https://europepmc.org/article/med/${pmid}`;
-            console.log(`[ETAPA 2] ✓ Texto completo via Europa PMC`);
           }
         }
       } catch (e) {
-        console.log(`[ETAPA 2] Europa PMC erro: ${e}`);
+        console.log(`[Europa PMC] erro: ${e}`);
       }
     }
 
-    if (!temTextoCompleto) {
-      console.log(`[ETAPA 2] Usando abstract (${abstractText.length} chars)`);
-    }
-
     // ETAPA 3 — Claude API
-    console.log(`[ETAPA 3] Claude API — fonte: ${fonteTexto} — ${textoAnalise.length} chars`);
+    console.log(`[ETAPA 3] Claude — fonte: ${fonteTexto} — ${textoAnalise.length} chars`);
 
-    const promptAnalise = `Você é especialista em epidemiologia clínica e medicina baseada em evidências, analisando artigos para cardiologistas brasileiros.
-
-${temTextoCompleto ? `Você tem o TEXTO COMPLETO deste artigo (fonte: ${fonteTexto}).` : `Você tem apenas o ABSTRACT. Faça a melhor análise possível. Indique quando não foi possível avaliar por falta de informação.`}
-
-Analise o artigo abaixo com profundidade máxima.
-
-PASSO 1 — Identifique o tipo de estudo:
-- Ensaio Clínico Randomizado (RCT)
-- Revisão Sistemática ou Meta-análise
-- Estudo de Coorte
-- Estudo Caso-Controle
-- Estudo Transversal
-- Guideline / Consenso
-- Outro (especificar)
-
-PASSO 2 — Aplique as ferramentas corretas:
-
-SE for RCT:
-- RoB 2: avalie os 5 domínios (D1 randomização, D2 desvios da intervenção, D3 dados incompletos, D4 mensuração do desfecho, D5 seleção do resultado). Para cada domínio: julgamento (baixo risco / algumas preocupações / alto risco) + justificativa específica.
-- Jadad Scale: pontue randomização (0-2) + cegamento (0-2) + perdas/exclusões (0-1). Score total 0-5. ≥3 = boa qualidade.
-- CASP RCT: avalie validade, resultados e aplicabilidade clínica.
-
-SE for Revisão Sistemática ou Meta-análise:
-- AMSTAR 2: classifique como alta / moderada / baixa / criticamente baixa qualidade com justificativa nos domínios críticos.
-- ROBIS: avalie risco de viés em 3 fases (relevância do escopo, condução da revisão, julgamento final).
-- CASP SR: avalie validade, resultados e aplicabilidade.
-- GRADE da evidência: classifique a qualidade da evidência gerada.
-
-SE for Coorte:
-- CASP Cohort: avalie seleção, mensuração de exposição, seguimento e desfechos.
-- Newcastle-Ottawa Scale: pontue seleção (0-4), comparabilidade (0-2), desfecho (0-3).
-
-SE for Caso-Controle:
-- CASP Case-Control: avalie validade interna e externa.
-- Newcastle-Ottawa Scale adaptada para caso-controle.
-
-SE for Guideline/Consenso:
-- AGREE II resumido: avalie escopo, envolvimento de stakeholders, rigor de desenvolvimento, clareza, aplicabilidade.
-
-PASSO 3 — Retorne SOMENTE este JSON válido, sem texto antes ou depois:
-{
-  "titulo": "título completo em português",
-  "journal": "nome do periódico",
-  "ano": 2024,
-  "tipo_estudo": "tipo exato identificado no Passo 1",
-  "ferramentas_usadas": "lista das ferramentas aplicadas separadas por vírgula",
-  "resumo_pt": "2-3 frases sintetizando o artigo",
-  "introducao_resumo": "contexto clínico, lacuna na evidência e justificativa do estudo em 2-3 frases",
-  "metodologia_detalhada": "desenho do estudo, população (n, critérios inclusão/exclusão), intervenção vs controle, desfecho primário e secundários, seguimento, método de randomização e cegamento quando aplicável, análise estatística principal",
-  "resultados_principais": "desfecho primário com resultado numérico, IC 95% e valor p. Desfechos secundários relevantes. Eventos adversos. NNT ou NNH quando calculável.",
-  "conclusao_autores": "conclusão declarada pelos autores",
-  "implicacao_clinica": "impacto direto na prática clínica em 1-2 frases objetivas",
-  "grade": "Alto, Moderado, Baixo ou Muito baixo",
-  "grade_justificativa": "justificativa específica referenciando os domínios GRADE",
-  "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco (para RCT) / julgamento equivalente para outros tipos",
-  "vieses_detalhados": "Para RCT — D1: [julgamento] — [justificativa]. D2-D5 idem. Para outros tipos — adaptar conforme ferramenta aplicada.",
-  "jadad_score": null,
-  "jadad_justificativa": "pontuação detalhada apenas se RCT: randomização X/2, cegamento X/2, perdas X/1. Total: X/5",
-  "amstar2_classificacao": null,
-  "amstar2_justificativa": "apenas se revisão sistemática: classificação e domínios críticos com problemas identificados",
-  "robis_resultado": null,
-  "robis_justificativa": "apenas se revisão sistemática: resultado das 3 fases do ROBIS",
-  "analise_metodologica": "avaliação crítica independente em 3-4 frases: pontos fortes, limitações metodológicas e grau de confiança nas conclusões",
-  "limitacoes_autores": "limitações declaradas pelos próprios autores",
-  "conflitos_interesse": "conflitos de interesse e fonte de financiamento",
-  "contexto_vs_anterior": "como este estudo muda, confirma ou contradiz a evidência prévia",
-  "casp_resumo": "avaliação CASP resumida: válido? resultados importantes? aplicável à população brasileira?",
-  "questao": "caso clínico de 2-3 frases baseado nos resultados do estudo",
-  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
-  "resposta_correta": "A, B, C ou D",
-  "feedback_quiz": "explicação da resposta correta com referência direta aos resultados do estudo e impacto no guideline"
-}
-
-Artigo (fonte: ${fonteTexto}, ${textoAnalise.length} chars):
-${textoAnalise}`;
+    const promptAnalise = buildPrompt(textoAnalise, fonteTexto, temTextoCompleto);
 
     const claudeResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -258,10 +309,10 @@ ${textoAnalise}`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
+        max_tokens: 5000,
         messages: [{ role: "user", content: promptAnalise }],
       }),
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(120000),
     });
 
     if (!claudeResp.ok) {
@@ -277,75 +328,36 @@ ${textoAnalise}`;
     const analise = JSON.parse(jsonMatch[0]);
     console.log(`[ETAPA 3] ✓ Claude respondeu`);
 
-    // ETAPA 4 — Salvar no banco
-    const linkFinal =
-      urlTextoCompleto ||
-      (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
-
+    // ETAPA 4 — Save
+    const linkFinal = urlTextoCompleto || (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
     const anoFinal = analise.ano || ano || new Date().getFullYear();
+
+    const insertPayload = buildInsertPayload(analise, {
+      titulo: titulo,
+      journal: journal,
+      ano: anoFinal,
+      pmid,
+      link_original: linkFinal,
+      citacoes: 0,
+      score_relevancia: (anoFinal - 2020) * 10 + 50,
+      tem_texto_completo: temTextoCompleto,
+      url_texto_completo: temTextoCompleto ? urlTextoCompleto : null,
+      fonte_texto: fonteTexto,
+      data_publicacao: anoFinal ? `${anoFinal}-01-01` : null,
+    });
 
     const { data: inserted, error: insertErr } = await supabase
       .from("artigos")
-      .insert({
-        titulo: analise.titulo || titulo || `Artigo ${pmid}`,
-        journal: analise.journal || journal || null,
-        ano: anoFinal,
-        especialidade: "Cardiologia",
-        pmid,
-        link_original: linkFinal,
-        resumo_pt: analise.resumo_pt || null,
-        introducao_resumo: analise.introducao_resumo || null,
-        metodologia_detalhada: analise.metodologia_detalhada || null,
-        resultados_principais: analise.resultados_principais || null,
-        conclusao_autores: analise.conclusao_autores || null,
-        implicacao_clinica: analise.implicacao_clinica || null,
-        tipo_estudo: analise.tipo_estudo || null,
-        ferramentas_usadas: analise.ferramentas_usadas || null,
-        grade: analise.grade || null,
-        grade_justificativa: analise.grade_justificativa || null,
-        rob_resultado: analise.rob_resultado || null,
-        analise_metodologica: analise.analise_metodologica || null,
-        vieses_detalhados: analise.vieses_detalhados || null,
-        jadad_score: analise.jadad_score || null,
-        jadad_justificativa: analise.jadad_justificativa || null,
-        amstar2_classificacao: analise.amstar2_classificacao || null,
-        amstar2_justificativa: analise.amstar2_justificativa || null,
-        robis_resultado: analise.robis_resultado || null,
-        robis_justificativa: analise.robis_justificativa || null,
-        casp_resumo: analise.casp_resumo || null,
-        limitacoes_autores: analise.limitacoes_autores || null,
-        conflitos_interesse: analise.conflitos_interesse || null,
-        contexto_vs_anterior: analise.contexto_vs_anterior || null,
-        questao: analise.questao || null,
-        alt_a: analise.alt_a || null,
-        alt_b: analise.alt_b || null,
-        alt_c: analise.alt_c || null,
-        alt_d: analise.alt_d || null,
-        resposta_correta: analise.resposta_correta || null,
-        feedback_quiz: analise.feedback_quiz || null,
-        tem_texto_completo: temTextoCompleto,
-        url_texto_completo: temTextoCompleto ? urlTextoCompleto : null,
-        fonte_texto: fonteTexto,
-        citacoes: 0,
-        score_relevancia: (anoFinal - 2020) * 10 + 50,
-        data_publicacao: anoFinal ? `${anoFinal}-01-01` : null,
-      })
+      .insert(insertPayload)
       .select("id, resumo_pt, grade")
       .single();
 
-    if (insertErr) {
-      throw new Error(`Salvar: ${insertErr.message}`);
-    }
+    if (insertErr) throw new Error(`Salvar: ${insertErr.message}`);
 
     console.log(`[FIM] ✓ PMID ${pmid} — fonte: ${fonteTexto} — completo: ${temTextoCompleto}`);
 
     return new Response(
-      JSON.stringify({
-        id: inserted.id,
-        resumo_pt: inserted.resumo_pt,
-        grade: inserted.grade,
-        already_existed: false,
-      }),
+      JSON.stringify({ id: inserted.id, resumo_pt: inserted.resumo_pt, grade: inserted.grade, already_existed: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {

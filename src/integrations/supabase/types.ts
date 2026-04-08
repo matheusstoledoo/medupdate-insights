@@ -22,6 +22,7 @@ export type Database = {
           alt_d: string | null
           amstar2_classificacao: string | null
           amstar2_justificativa: string | null
+          analise_completa: Json | null
           analise_metodologica: string | null
           ano: number | null
           casp_resumo: string | null
@@ -72,6 +73,7 @@ export type Database = {
           alt_d?: string | null
           amstar2_classificacao?: string | null
           amstar2_justificativa?: string | null
+          analise_completa?: Json | null
           analise_metodologica?: string | null
           ano?: number | null
           casp_resumo?: string | null
@@ -122,6 +124,7 @@ export type Database = {
           alt_d?: string | null
           amstar2_classificacao?: string | null
           amstar2_justificativa?: string | null
+          analise_completa?: Json | null
           analise_metodologica?: string | null
           ano?: number | null
           casp_resumo?: string | null

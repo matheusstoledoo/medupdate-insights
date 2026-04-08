@@ -1,0 +1,1 @@
+ALTER TABLE public.artigos ADD COLUMN analise_completa jsonb DEFAULT NULL;
