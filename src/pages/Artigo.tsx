@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import ArtigoHeader from "@/components/artigo/ArtigoHeader";
 import AnaliseEstudo from "@/components/artigo/AnaliseEstudo";
 import AvaliacaoQualidade from "@/components/artigo/AvaliacaoQualidade";
+import ArticleChat from "@/components/ArticleChat";
 
 const Artigo = () => {
   const { id } = useParams<{ id: string }>();
@@ -74,6 +75,19 @@ const Artigo = () => {
         >
           Responder questão clínica →
         </Link>
+
+        <ArticleChat
+          articleContent={[
+            artigo.resumo_pt,
+            artigo.introducao_resumo,
+            artigo.metodologia_detalhada,
+            artigo.resultados_principais,
+            artigo.conclusao_autores,
+            artigo.implicacao_clinica,
+            artigo.analise_metodologica,
+            artigo.contexto_vs_anterior,
+          ].filter(Boolean).join("\n\n")}
+        />
       </main>
     </div>
   );
