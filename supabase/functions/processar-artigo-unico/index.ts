@@ -255,18 +255,28 @@ Deno.serve(async (req) => {
       const pmcid = pmcidXml || (await buscarPMCID(pmid));
       if (pmcid) {
         try {
-          const pmcResp = await fetch(
-            `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext&email=medupdate@app.com`,
-            { signal: AbortSignal.timeout(20000) }
-          );
-          if (pmcResp.ok) {
-            const pmcTexto = await pmcResp.text();
-            if (pmcTexto.length > 3000) {
-              textoAnalise = pmcTexto.substring(0, 15000);
-              temTextoCompleto = true;
-              fonteTexto = "PubMed Central";
-              urlTextoCompleto = `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`;
-            }
+         const pmcResp = await fetch(
+  `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
+  {
+    headers: { "User-Agent": "MedUpdate/1.0 (medupdate@app.com)" },
+    signal: AbortSignal.timeout(20000),
+  }
+);
+if (pmcResp.ok) {
+  const htmlBruto = await pmcResp.text();
+  const pmcTexto = htmlBruto
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s{3,}/g, "\n\n")
+    .trim();
+  if (pmcTexto.length > 3000) {
+    textoAnalise = pmcTexto.substring(0, 30000);
+    temTextoCompleto = true;
+    fonteTexto = "PubMed Central";
+    urlTextoCompleto = `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`;
+  }
+}
           }
         } catch (e) {
           console.log(`[PMC] erro: ${e}`);
@@ -309,7 +319,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 5000,
+        max_tokens: 8000,
         messages: [{ role: "user", content: promptAnalise }],
       }),
       signal: AbortSignal.timeout(120000),
