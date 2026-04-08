@@ -207,18 +207,31 @@ async function tentarPMC(
     const pmcid = idConvData?.records?.[0]?.pmcid;
     if (!pmcid) return null;
 
-    const pmcResp = await fetch(
-      `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${pmcid}&retmode=text&rettype=fulltext&email=medupdate@app.com`,
-      { signal: AbortSignal.timeout(15000) }
-    );
-    const texto = await pmcResp.text();
-    if (texto.length > 3000) {
-      return {
-        texto: texto.substring(0, 15000),
-        fonte: "PubMed Central",
-        completo: true,
-        url: `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
-      };
+const pmcResp = await fetch(
+  `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
+  {
+    headers: { "User-Agent": "MedUpdate/1.0 (medupdate@app.com)" },
+    signal: AbortSignal.timeout(20000),
+  }
+);
+if (!pmcResp.ok) return null;
+
+const htmlBruto = await pmcResp.text();
+const texto = htmlBruto
+  .replace(/<script[\s\S]*?<\/script>/gi, "")
+  .replace(/<style[\s\S]*?<\/style>/gi, "")
+  .replace(/<[^>]+>/g, " ")
+  .replace(/\s{3,}/g, "\n\n")
+  .trim();
+
+if (texto.length > 3000) {
+  return {
+    texto: texto.substring(0, 30000),
+    fonte: "PubMed Central",
+    completo: true,
+    url: `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
+  };
+}
     }
   } catch (e) {
     console.log(`[PMC] Erro: ${e}`);
