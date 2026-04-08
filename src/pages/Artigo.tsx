@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import ArtigoHeader from "@/components/artigo/ArtigoHeader";
 import AnaliseEstudo from "@/components/artigo/AnaliseEstudo";
 import AvaliacaoQualidade from "@/components/artigo/AvaliacaoQualidade";
+import ArticleChat from "@/components/ArticleChat";
 
 const Artigo = () => {
   const { id } = useParams<{ id: string }>();
