@@ -96,15 +96,47 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "conflitos_interesse": "conflitos e financiamento",
   "contexto_vs_anterior": "como muda a evidência prévia",
   "casp_resumo": "avaliação CASP resumida",
-  "introducao_resumo": "contexto e justificativa em 2-3 frases",
-  "metodologia_detalhada": "desenho, população, intervenção, desfechos, seguimento — texto corrido",
-  "resultados_principais": "desfecho primário com números, IC 95%, p-valor. Secundários. Adversos. NNT/NNH.",
-  "conclusao_autores": "conclusão declarada",
-  "implicacao_clinica": "impacto na prática em 1-2 frases",
-  "questao": "caso clínico de 2-3 frases",
-  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
-  "resposta_correta": "A, B, C ou D",
-  "feedback_quiz": "explicação com referência aos resultados"
+  "introducao_resumo": "Mínimo 150 palavras. Descreva: contexto epidemiológico com dados numéricos, lacuna de evidência que motivou o estudo, hipótese testada e relevância clínica da pergunta",
+  "metodologia_detalhada": "Mínimo 400 palavras. Descreva: delineamento completo, população com TODOS os critérios de inclusão/exclusão numéricos, características basais detalhadas, intervenção com dose/via/duração, todos os desfechos primários e secundários com definições exatas, período de seguimento, método de randomização e estratificação, análise estatística com modelo, potência e alfa",
+  "resultados_principais": "Mínimo 300 palavras. Inclua: desfecho primário com n e % em cada grupo, HR/OR/RR, IC 95%, p-valor. Todos os desfechos secundários com mesmos dados. Eventos adversos com incidências comparativas. Meta-análise se houver. NNT/NNH quando aplicável.",
+  "conclusao_autores": "Mínimo 150 palavras. Reproduza fielmente a conclusão dos autores incluindo: resultado do desfecho primário com os números, nuances entre resultado principal e dados secundários ou meta-análise, declaração explícita sobre significância estatística e direção do efeito",
+  "implicacao_clinica": "Mínimo 150 palavras. Explique: o que esse resultado muda ou não muda na prática, para qual perfil de paciente se aplica, como se integra às diretrizes vigentes, se há conflito com evidências anteriores e como resolver na prática clínica do dia a dia",
+"questoes": [
+  {
+    "enunciado": "Caso clínico de 2-3 frases baseado nos resultados do estudo, com dados clínicos realistas",
+    "alt_a": "alternativa plausível mas incorreta",
+    "alt_b": "alternativa plausível mas incorreta",
+    "alt_c": "alternativa correta baseada nos resultados do estudo",
+    "alt_d": "alternativa plausível mas incorreta",
+    "resposta_correta": "C",
+    "feedback": "Explicação detalhada referenciando os dados do estudo (HR, IC 95%, p-valor) e impacto clínico"
+  },
+  {
+    "enunciado": "Segunda questão explorando aspecto metodológico ou de segurança do estudo",
+    "alt_a": "",
+    "alt_b": "",
+    "alt_c": "",
+    "alt_d": "",
+    "resposta_correta": "A, B, C ou D",
+    "feedback": "Explicação com referência ao dado específico do estudo"
+  },
+  {
+    "enunciado": "Terceira questão explorando aplicação clínica ou interpretação dos resultados",
+    "alt_a": "",
+    "alt_b": "",
+    "alt_c": "",
+    "alt_d": "",
+    "resposta_correta": "A, B, C ou D",
+    "feedback": "Explicação com referência ao dado específico do estudo"
+  }
+],
+"questao": "mesma que questoes[0].enunciado — manter para compatibilidade",
+"alt_a": "mesma que questoes[0].alt_a",
+"alt_b": "mesma que questoes[0].alt_b",
+"alt_c": "mesma que questoes[0].alt_c",
+"alt_d": "mesma que questoes[0].alt_d",
+"resposta_correta": "mesma que questoes[0].resposta_correta",
+"feedback_quiz": "mesma que questoes[0].feedback"
 }
 
 Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
