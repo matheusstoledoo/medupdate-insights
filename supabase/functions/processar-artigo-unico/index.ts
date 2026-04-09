@@ -145,9 +145,10 @@ ${textoParaAnalise}`;
 
 function buildInsertPayload(parsed: Record<string, any>, extras: Record<string, any>) {
   const analiseCompleta: Record<string, any> = {};
-  if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
-  if (parsed.resultados) analiseCompleta.resultados = parsed.resultados;
-  if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
+if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
+if (parsed.resultados) analiseCompleta.resultados = parsed.resultados;
+if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
+if (parsed.questoes) analiseCompleta.questoes = parsed.questoes;
 
   return {
     titulo: parsed.titulo || extras.titulo || "Artigo sem título",
