@@ -67,19 +67,19 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "metodologia": {
     "delineamento": "Tipo exato do estudo (ex: ECRC duplo-cego, multicêntrico, placebo-controlado)",
     "populacao": {
-      "descricao": "Descrição detalhada: critérios de inclusão/exclusão relevantes, condição clínica exata, gravidade, comorbidades",
-      "n_total": "número total randomizado",
+      "descricao": "Descrição detalhada: TODOS os critérios de inclusão/exclusão, condição clínica exata, gravidade, comorbidades",
+      "n_total": "número total randomizado, número alocado no grupo controle, número alocado no grupo intervenção",
       "caracteristicas_basais": "Idade mediana/média, % mulheres, % com diabetes, FEVE, condições associadas relevantes — com números",
-      "criterios_inclusao": "Principais critérios com detalhes numéricos (ex: NT-proBNP > X, LVEF ≤ X%)",
-      "criterios_exclusao": "Principais critérios de exclusão"
+      "criterios_inclusao": "Liste TODOS os critérios com detalhes numéricos (ex: NT-proBNP > X, LVEF ≤ X%) e/ou descritivos",
+      "criterios_exclusao": "Liste TODOS os critérios de exclusão mencionados no texto — procure nas seções Methods/Participants/Eligibility"
     },
     "intervencao": "Droga/procedimento, dose exata, via, duração, quando iniciado em relação ao evento clínico",
-    "comparador": "Placebo ou comparador ativo com detalhes",
-    "desfecho_primario": "Definição exata do desfecho primário composto ou simples, com horizonte de tempo",
+    "comparador": "Placebo ou comparador ativo com TODOS os detalhes",
+    "desfecho_primario": "Definição exata do desfecho primário composto ou simples, com horizonte de tempo e os itens avaliados",
     "desfechos_secundarios": "Lista dos principais desfechos secundários com suas definições",
     "seguimento": "Duração e visitas de seguimento",
     "randomizacao": "Método, estratificação, razão de alocação",
-    "analise_estatistica": "Teste primário, modelo usado, potência, taxa de evento esperada, alfa"
+    "analise_estatistica": "Teste primário (log-rank, t-test etc.), modelo estatístico (Cox, logístico etc.), potência calculada (%), taxa de evento esperada no grupo controle, nível alfa, software usado. Procure na seção Statistical Analysis"
   },
   "resultados": {
     "desfecho_primario": {
@@ -97,19 +97,19 @@ SE for Guideline/Consenso: aplique AGREE II resumido
     ],
     "seguranca": {
       "eventos_adversos_principais": "Com incidências numéricas comparativas nos dois grupos",
-      "descontinuacoes": "Taxa de descontinuação por eventos adversos"
+      "descontinuacoes": "Taxa de descontinuação do medicamento por eventos adversos em cada grupo — procure em Safety/Adverse Events"
     },
     "analises_pre_especificadas": "Subgrupos ou meta-análise pré-especificados com resultados numéricos"
   },
   "conclusao": {
     "conclusao_dos_autores": "O que os autores concluíram exatamente, incluindo a nuance entre o resultado principal e dados adicionais",
     "implicacao_clinica": "O que esse estudo muda ou não muda na prática clínica cardiológica",
-    "limitacoes": "Limitações metodológicas relevantes mencionadas pelos autores",
+    "limitacoes": "Liste TODAS as limitações declaradas pelos autores — procure no final da Discussion/Conclusions. Não deixe vazio mesmo que pareça implícito",
     "contexto_evidencia": "Como esse resultado se encaixa no corpo de evidências existente (outros estudos mencionados)"
   },
   "titulo": "título completo em português",
   "journal": "nome do periódico",
-  "ano": 2024,
+  "ano": "ano de publicação",
   "tipo_estudo": "tipo exato identificado",
   "ferramentas_usadas": "lista das ferramentas aplicadas separadas por vírgula",
   "resumo_pt": "3-4 frases sintetizando o artigo para especialistas",
