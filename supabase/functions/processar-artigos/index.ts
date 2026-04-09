@@ -397,7 +397,7 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-20250514",
-              max_tokens: 8000,
+              max_tokens: 10000,
               messages: [{ role: "user", content: promptAnalise }],
             }),
             signal: AbortSignal.timeout(120000),
