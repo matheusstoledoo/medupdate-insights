@@ -154,14 +154,6 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "resposta_correta": "A, B, C ou D",
   "feedback": "Explicação referenciando dado específico do estudo"
 },
-"questao": "mesma que questao_1.enunciado",
-"alt_a": "mesma que questao_1.alt_a",
-"alt_b": "mesma que questao_1.alt_b",
-"alt_c": "mesma que questao_1.alt_c",
-"alt_d": "mesma que questao_1.alt_d",
-"resposta_correta": "mesma que questao_1.resposta_correta",
-"feedback_quiz": "mesma que questao_1.feedback"
-}
 
 Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
 ${textoParaAnalise}`;
@@ -175,6 +167,8 @@ if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
 if (parsed.questao_1) analiseCompleta.questao_1 = parsed.questao_1;
 if (parsed.questao_2) analiseCompleta.questao_2 = parsed.questao_2;
 if (parsed.questao_3) analiseCompleta.questao_3 = parsed.questao_3;
+  // Mapear questao_1 para campos flat (compatibilidade com frontend)
+const q1 = parsed.questao_1;
 
   return {
     titulo: parsed.titulo || extras.titulo || "Artigo sem título",
@@ -204,13 +198,13 @@ if (parsed.questao_3) analiseCompleta.questao_3 = parsed.questao_3;
     casp_resumo: parsed.casp_resumo || null,
     limitacoes_autores: parsed.limitacoes_autores || parsed.conclusao?.limitacoes || null,
     conflitos_interesse: parsed.conflitos_interesse || null,
-    questao: parsed.questao || null,
-    alt_a: parsed.alt_a || null,
-    alt_b: parsed.alt_b || null,
-    alt_c: parsed.alt_c || null,
-    alt_d: parsed.alt_d || null,
-    resposta_correta: parsed.resposta_correta || null,
-    feedback_quiz: parsed.feedback_quiz || null,
+    questao: parsed.questao_1?.enunciado || parsed.questao || null,
+    alt_a: parsed.questao_1?.alt_a || parsed.alt_a || null,
+    alt_b: parsed.questao_1?.alt_b || parsed.alt_b || null,
+    alt_c: parsed.questao_1?.alt_c || parsed.alt_c || null,
+    alt_d: parsed.questao_1?.alt_d || parsed.alt_d || null,
+    resposta_correta: parsed.questao_1?.resposta_correta || parsed.resposta_correta || null,
+    feedback_quiz: parsed.questao_1?.feedback || parsed.feedback_quiz || null,
     analise_completa: Object.keys(analiseCompleta).length > 0 ? analiseCompleta : null,
     ...extras,
   };
