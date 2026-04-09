@@ -123,14 +123,6 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "feedback": "Explicação referenciando dado específico do estudo"
 },
 ],
-"questao": "mesma que questoes[0].enunciado — manter para compatibilidade",
-"alt_a": "mesma que questoes[0].alt_a",
-"alt_b": "mesma que questoes[0].alt_b",
-"alt_c": "mesma que questoes[0].alt_c",
-"alt_d": "mesma que questoes[0].alt_d",
-"resposta_correta": "mesma que questoes[0].resposta_correta",
-"feedback_quiz": "mesma que questoes[0].feedback"
-}
 
 Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
 ${textoParaAnalise}`;
@@ -366,7 +358,7 @@ pmcTexto = pmcTexto
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 8000,
+        max_tokens: 10000,
         messages: [{ role: "user", content: promptAnalise }],
       }),
       signal: AbortSignal.timeout(120000),
