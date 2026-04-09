@@ -133,42 +133,34 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "resultados_principais": "Mínimo 300 palavras. Inclua: desfecho primário com n e % em cada grupo, HR/OR/RR, IC 95%, p-valor. Todos os desfechos secundários com mesmos dados. Eventos adversos com incidências comparativas. Meta-análise se houver. NNT/NNH quando aplicável",
   "conclusao_autores": "Mínimo 150 palavras. Reproduza fielmente a conclusão dos autores incluindo: resultado do desfecho primário com os números, nuances entre resultado principal e dados secundários ou meta-análise, declaração explícita sobre significância estatística e direção do efeito",
   "implicacao_clinica": "Mínimo 150 palavras. Explique: o que esse resultado muda ou não muda na prática, para qual perfil de paciente se aplica, como se integra às diretrizes vigentes, se há conflito com evidências anteriores e como resolver na prática clínica do dia a dia",
-  "questoes": [
-  {
-    "enunciado": "Caso clínico de 2-3 frases baseado nos resultados do estudo, com dados clínicos realistas",
-    "alt_a": "alternativa plausível mas incorreta",
-    "alt_b": "alternativa plausível mas incorreta",
-    "alt_c": "alternativa correta baseada nos resultados do estudo",
-    "alt_d": "alternativa plausível mas incorreta",
-    "resposta_correta": "C",
-    "feedback": "Explicação detalhada referenciando os dados do estudo (HR, IC 95%, p-valor) e impacto clínico"
-  },
-  {
-    "enunciado": "Segunda questão explorando aspecto metodológico ou de segurança do estudo",
-    "alt_a": "",
-    "alt_b": "",
-    "alt_c": "",
-    "alt_d": "",
-    "resposta_correta": "A, B, C ou D",
-    "feedback": "Explicação com referência ao dado específico do estudo"
-  },
-  {
-    "enunciado": "Terceira questão explorando aplicação clínica ou interpretação dos resultados",
-    "alt_a": "",
-    "alt_b": "",
-    "alt_c": "",
-    "alt_d": "",
-    "resposta_correta": "A, B, C ou D",
-    "feedback": "Explicação com referência ao dado específico do estudo"
-  }
-],
-"questao": "mesma que questoes[0].enunciado — manter para compatibilidade",
-"alt_a": "mesma que questoes[0].alt_a",
-"alt_b": "mesma que questoes[0].alt_b",
-"alt_c": "mesma que questoes[0].alt_c",
-"alt_d": "mesma que questoes[0].alt_d",
-"resposta_correta": "mesma que questoes[0].resposta_correta",
-"feedback_quiz": "mesma que questoes[0].feedback"
+  "questao_1": {
+  "enunciado": "Caso clínico de 2-3 frases baseado nos resultados, com dados clínicos realistas",
+  "alt_a": "alternativa plausível mas incorreta",
+  "alt_b": "alternativa plausível mas incorreta", 
+  "alt_c": "alternativa correta baseada nos resultados",
+  "alt_d": "alternativa plausível mas incorreta",
+  "resposta_correta": "C",
+  "feedback": "Explicação com HR, IC 95%, p-valor do estudo"
+},
+"questao_2": {
+  "enunciado": "Questão sobre aspecto metodológico ou de segurança",
+  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+  "resposta_correta": "A, B, C ou D",
+  "feedback": "Explicação referenciando dado específico do estudo"
+},
+"questao_3": {
+  "enunciado": "Questão sobre aplicação clínica ou interpretação dos resultados",
+  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+  "resposta_correta": "A, B, C ou D",
+  "feedback": "Explicação referenciando dado específico do estudo"
+},
+"questao": "mesma que questao_1.enunciado",
+"alt_a": "mesma que questao_1.alt_a",
+"alt_b": "mesma que questao_1.alt_b",
+"alt_c": "mesma que questao_1.alt_c",
+"alt_d": "mesma que questao_1.alt_d",
+"resposta_correta": "mesma que questao_1.resposta_correta",
+"feedback_quiz": "mesma que questao_1.feedback"
 }
 
 Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
@@ -180,7 +172,9 @@ function buildInsertPayload(parsed: Record<string, any>, extras: Record<string, 
 if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
 if (parsed.resultados) analiseCompleta.resultados = parsed.resultados;
 if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
-if (parsed.questoes) analiseCompleta.questoes = parsed.questoes;
+if (parsed.questao_1) analiseCompleta.questao_1 = parsed.questao_1;
+if (parsed.questao_2) analiseCompleta.questao_2 = parsed.questao_2;
+if (parsed.questao_3) analiseCompleta.questao_3 = parsed.questao_3;
 
   return {
     titulo: parsed.titulo || extras.titulo || "Artigo sem título",
