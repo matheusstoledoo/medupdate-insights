@@ -39,19 +39,19 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "metodologia": {
     "delineamento": "Tipo exato do estudo",
     "populacao": {
-      "descricao": "Descrição detalhada",
-      "n_total": "número total",
-      "caracteristicas_basais": "Idade, % mulheres, comorbidades — com números",
-      "criterios_inclusao": "Principais critérios com detalhes numéricos",
-      "criterios_exclusao": "Principais critérios de exclusão"
+      "descricao": "Descrição detalhada da população",
+      "n_total": "número total, número de participantes no grupo intervenção e no grupo controle",
+      "caracteristicas_basais": "Variação da idade, % mulheres, % homens, comorbidades — com números, características dos participantes do grupo intervenção comparados com o grupo controle",
+      "criterios_inclusao": "Liste TODOS os critérios de inclusão com todos os detalhes numéricos e/ou descritivos",
+      "criterios_exclusao": "Liste TODOS os critérios de exclusão mencionados no texto — procure nas seções Methods/Participants/Eligibility"
     },
     "intervencao": "Droga/procedimento, dose exata, via, duração",
-    "comparador": "Placebo ou comparador ativo com detalhes",
-    "desfecho_primario": "Definição exata do desfecho primário",
-    "desfechos_secundarios": "Lista dos principais desfechos secundários",
+    "comparador": "Placebo ou comparador ativo com todos os detalhes",
+    "desfecho_primario": "Definição exata do desfecho primário com todos os detalhes avaliados",
+    "desfechos_secundarios": "Lista dos principais desfechos secundários com os detalhes avaliados",
     "seguimento": "Duração e visitas de seguimento",
     "randomizacao": "Método, estratificação, razão de alocação",
-    "analise_estatistica": "Teste primário, modelo, potência, alfa"
+    "analise_estatistica": "Teste primário (log-rank, t-test etc.), modelo estatístico (Cox, logístico etc.), potência calculada (%), taxa de evento esperada no grupo controle, nível alfa, software usado. Procure na seção Statistical Analysis"
   },
   "resultados": {
     "desfecho_primario": {
@@ -65,22 +65,22 @@ SE for Guideline/Consenso: aplique AGREE II resumido
     ],
     "seguranca": {
       "eventos_adversos_principais": "Incidências comparativas nos dois grupos",
-      "descontinuacoes": "Taxa de descontinuação por eventos adversos"
+      "descontinuacoes": "Taxa de descontinuação do medicamento por eventos adversos em cada grupo — procure em Safety/Adverse Events"
     },
     "analises_pre_especificadas": "Subgrupos com resultados numéricos"
   },
   "conclusao": {
     "conclusao_dos_autores": "O que os autores concluíram exatamente",
     "implicacao_clinica": "O que muda na prática clínica",
-    "limitacoes": "Limitações metodológicas mencionadas",
+    "limitacoes": "Liste TODAS as limitações declaradas pelos autores — procure no final da Discussion/Conclusions. Não deixe vazio mesmo que pareça implícito",
     "contexto_evidencia": "Como se encaixa na evidência existente"
   },
   "titulo": "título completo em português",
   "journal": "nome do periódico",
-  "ano": 2024,
+  "ano": "ano de publicação",
   "tipo_estudo": "tipo exato",
   "ferramentas_usadas": "ferramentas aplicadas separadas por vírgula",
-  "resumo_pt": "3-4 frases sintetizando o artigo",
+  "resumo_pt": "10 frases sintetizando o artigo",
   "grade": "Alto, Moderado, Baixo ou Muito baixo",
   "grade_justificativa": "justificativa GRADE",
   "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",
