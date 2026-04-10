@@ -121,8 +121,8 @@ SE for Guideline/Consenso: aplique AGREE II resumido
   "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
   "resposta_correta": "A, B, C ou D",
   "feedback": "Explicação referenciando dado específico do estudo"
-},
-],
+}
+}
 
 Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
 ${textoParaAnalise}`;
