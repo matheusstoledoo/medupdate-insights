@@ -26,6 +26,7 @@ import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
 import BuscaAtiva from "@/components/BuscaAtiva";
 import UploadArtigo from "@/components/UploadArtigo";
+import RevisoesInline from "@/components/RevisoesInline";
 import { useStreak } from "@/hooks/use-streak";
 
 type Modo = "atualizacoes" | "busca" | "upload" | "revisoes";
