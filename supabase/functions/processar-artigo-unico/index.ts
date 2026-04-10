@@ -173,7 +173,7 @@ const q1 = parsed.questao_1;
     alt_c: parsed.questao_1?.alt_c || parsed.alt_c || null,
     alt_d: parsed.questao_1?.alt_d || parsed.alt_d || null,
     resposta_correta: parsed.questao_1?.resposta_correta || parsed.resposta_correta || null,
-    feedback_quiz: parsed.questao_1?.feedback || parsed.feedback_quiz || null,,
+    feedback_quiz: parsed.questao_1?.feedback || parsed.feedback_quiz || null,
     analise_completa: Object.keys(analiseCompleta).length > 0 ? analiseCompleta : null,
     ...extras,
   };

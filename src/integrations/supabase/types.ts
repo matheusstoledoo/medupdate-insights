@@ -197,6 +197,53 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_respostas: {
+        Row: {
+          artigo_id: string
+          difficulty_antes: number | null
+          id: string
+          questao_key: string | null
+          respondido_em: string | null
+          resultado: string
+          scheduled_days_antes: number | null
+          stability_antes: number | null
+          tempo_resposta_ms: number | null
+          usuario_id: string
+        }
+        Insert: {
+          artigo_id: string
+          difficulty_antes?: number | null
+          id?: string
+          questao_key?: string | null
+          respondido_em?: string | null
+          resultado: string
+          scheduled_days_antes?: number | null
+          stability_antes?: number | null
+          tempo_resposta_ms?: number | null
+          usuario_id: string
+        }
+        Update: {
+          artigo_id?: string
+          difficulty_antes?: number | null
+          id?: string
+          questao_key?: string | null
+          respondido_em?: string | null
+          resultado?: string
+          scheduled_days_antes?: number | null
+          stability_antes?: number | null
+          tempo_resposta_ms?: number | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_respostas_artigo_id_fkey"
+            columns: ["artigo_id"]
+            isOneToOne: false
+            referencedRelation: "artigos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       progresso: {
         Row: {
           acertou: boolean | null
@@ -244,6 +291,130 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revisoes_artigo: {
+        Row: {
+          artigo_id: string
+          created_at: string | null
+          difficulty: number | null
+          elapsed_days: number | null
+          id: string
+          lapses: number | null
+          proxima_revisao: string | null
+          reps: number | null
+          scheduled_days: number | null
+          stability: number | null
+          state: string | null
+          ultima_revisao: string | null
+          updated_at: string | null
+          usuario_id: string
+        }
+        Insert: {
+          artigo_id: string
+          created_at?: string | null
+          difficulty?: number | null
+          elapsed_days?: number | null
+          id?: string
+          lapses?: number | null
+          proxima_revisao?: string | null
+          reps?: number | null
+          scheduled_days?: number | null
+          stability?: number | null
+          state?: string | null
+          ultima_revisao?: string | null
+          updated_at?: string | null
+          usuario_id: string
+        }
+        Update: {
+          artigo_id?: string
+          created_at?: string | null
+          difficulty?: number | null
+          elapsed_days?: number | null
+          id?: string
+          lapses?: number | null
+          proxima_revisao?: string | null
+          reps?: number | null
+          scheduled_days?: number | null
+          stability?: number | null
+          state?: string | null
+          ultima_revisao?: string | null
+          updated_at?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revisoes_artigo_artigo_id_fkey"
+            columns: ["artigo_id"]
+            isOneToOne: false
+            referencedRelation: "artigos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revisoes_questao: {
+        Row: {
+          artigo_id: string
+          created_at: string | null
+          difficulty: number | null
+          elapsed_days: number | null
+          id: string
+          lapses: number | null
+          proxima_revisao: string | null
+          questao_key: string
+          reps: number | null
+          scheduled_days: number | null
+          stability: number | null
+          state: string | null
+          ultima_revisao: string | null
+          ultimo_resultado: string | null
+          updated_at: string | null
+          usuario_id: string
+        }
+        Insert: {
+          artigo_id: string
+          created_at?: string | null
+          difficulty?: number | null
+          elapsed_days?: number | null
+          id?: string
+          lapses?: number | null
+          proxima_revisao?: string | null
+          questao_key: string
+          reps?: number | null
+          scheduled_days?: number | null
+          stability?: number | null
+          state?: string | null
+          ultima_revisao?: string | null
+          ultimo_resultado?: string | null
+          updated_at?: string | null
+          usuario_id: string
+        }
+        Update: {
+          artigo_id?: string
+          created_at?: string | null
+          difficulty?: number | null
+          elapsed_days?: number | null
+          id?: string
+          lapses?: number | null
+          proxima_revisao?: string | null
+          questao_key?: string
+          reps?: number | null
+          scheduled_days?: number | null
+          stability?: number | null
+          state?: string | null
+          ultima_revisao?: string | null
+          ultimo_resultado?: string | null
+          updated_at?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revisoes_questao_artigo_id_fkey"
+            columns: ["artigo_id"]
+            isOneToOne: false
+            referencedRelation: "artigos"
             referencedColumns: ["id"]
           },
         ]
