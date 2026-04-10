@@ -414,6 +414,8 @@ Deno.serve(async (req) => {
           }
 
           const parsed = JSON.parse(jsonMatch[0]);
+          console.log(`[PARSE] Chaves retornadas pelo Claude: ${Object.keys(parsed).join(', ')}`);
+          console.log(`[PARSE] questao_1 existe: ${!!parsed.questao_1}`);
           const anoFinal = parsed.ano || ano || new Date().getFullYear();
           const linkFinal = urlUsada || (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
 

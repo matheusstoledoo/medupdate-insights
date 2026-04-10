@@ -372,6 +372,9 @@ Deno.serve(async (req) => {
     const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Claude não retornou JSON");
     const analise = JSON.parse(jsonMatch[0]);
+    console.log(`[PARSE] Chaves retornadas pelo Claude: ${Object.keys(analise).join(', ')}`);
+    console.log(`[PARSE] questao_1 existe: ${!!analise.questao_1}`);
+    console.log(`[PARSE] questao_1 valor: ${JSON.stringify(analise.questao_1)}`);
     console.log(`[ETAPA 3] ✓ Claude respondeu`);
 
     // ETAPA 4 — Save

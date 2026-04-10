@@ -1,0 +1,1 @@
+DELETE FROM artigos WHERE pmid = '40884036';
