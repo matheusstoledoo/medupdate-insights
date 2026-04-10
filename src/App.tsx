@@ -6,6 +6,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Feed from "./pages/Feed";
 import Artigo from "./pages/Artigo";
 import Quiz from "./pages/Quiz";
+import Revisoes from "./pages/Revisoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/feed" element={<Feed />} />
           <Route path="/artigo/:id" element={<Artigo />} />
           <Route path="/quiz/:id" element={<Quiz />} />
+          <Route path="/revisoes" element={<Revisoes />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
