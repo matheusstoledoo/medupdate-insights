@@ -277,45 +277,42 @@ Deno.serve(async (req) => {
       const pmcid = pmcidXml || (await buscarPMCID(pmid));
       if (pmcid) {
         try {
-         const pmcResp = await fetch(
-  `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
-  {
-    headers: { "User-Agent": "MedUpdate/1.0 (medupdate@app.com)" },
-    signal: AbortSignal.timeout(20000),
-  }
-);
-if (pmcResp.ok) {
-  const htmlBruto = await pmcResp.text();
-  // Remove scripts e styles
-let pmcTexto = htmlBruto
-  .replace(/<script[\s\S]*?<\/script>/gi, "")
-  .replace(/<style[\s\S]*?<\/style>/gi, "")
-  .replace(/<nav[\s\S]*?<\/nav>/gi, "")
-  .replace(/<header[\s\S]*?<\/header>/gi, "")
-  .replace(/<footer[\s\S]*?<\/footer>/gi, "")
-  .replace(/<aside[\s\S]*?<\/aside>/gi, "");
+          const pmcResp = await fetch(
+            `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
+            {
+              headers: { "User-Agent": "MedUpdate/1.0 (medupdate@app.com)" },
+              signal: AbortSignal.timeout(20000),
+            }
+          );
+          if (pmcResp.ok) {
+            const htmlBruto = await pmcResp.text();
+            let pmcTexto = htmlBruto
+              .replace(/<script[\s\S]*?<\/script>/gi, "")
+              .replace(/<style[\s\S]*?<\/style>/gi, "")
+              .replace(/<nav[\s\S]*?<\/nav>/gi, "")
+              .replace(/<header[\s\S]*?<\/header>/gi, "")
+              .replace(/<footer[\s\S]*?<\/footer>/gi, "")
+              .replace(/<aside[\s\S]*?<\/aside>/gi, "");
 
-// Tenta extrair apenas o corpo do artigo (seção principal)
-const articleMatch = pmcTexto.match(/<article[\s\S]*?<\/article>/i) ||
-                     pmcTexto.match(/<main[\s\S]*?<\/main>/i) ||
-                     pmcTexto.match(/id="(?:content|main-content|article-body)"[\s\S]*?<\/div>/i);
+            const articleMatch = pmcTexto.match(/<article[\s\S]*?<\/article>/i) ||
+                                 pmcTexto.match(/<main[\s\S]*?<\/main>/i) ||
+                                 pmcTexto.match(/id="(?:content|main-content|article-body)"[\s\S]*?<\/div>/i);
 
-if (articleMatch) {
-  pmcTexto = articleMatch[0];
-}
+            if (articleMatch) {
+              pmcTexto = articleMatch[0];
+            }
 
-pmcTexto = pmcTexto
-  .replace(/<[^>]+>/g, " ")
-  .replace(/\s{3,}/g, "\n\n")
-  .trim();
+            pmcTexto = pmcTexto
+              .replace(/<[^>]+>/g, " ")
+              .replace(/\s{3,}/g, "\n\n")
+              .trim();
 
-  if (pmcTexto.length > 3000) {
-    textoAnalise = pmcTexto.substring(0, 30000);
-    temTextoCompleto = true;
-    fonteTexto = "PubMed Central";
-    urlTextoCompleto = `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`;
-  }
-}
+            if (pmcTexto.length > 3000) {
+              textoAnalise = pmcTexto.substring(0, 30000);
+              temTextoCompleto = true;
+              fonteTexto = "PubMed Central";
+              urlTextoCompleto = `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`;
+            }
           }
         } catch (e) {
           console.log(`[PMC] erro: ${e}`);
