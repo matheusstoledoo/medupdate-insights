@@ -238,8 +238,6 @@ const pmcResp = await fetch(
 if (!pmcResp.ok) return null;
 
 const htmlBruto = await pmcResp.text();
-const texto = htmlBruto
-// Remove scripts e styles
 let pmcTexto = htmlBruto
   .replace(/<script[\s\S]*?<\/script>/gi, "")
   .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -248,7 +246,6 @@ let pmcTexto = htmlBruto
   .replace(/<footer[\s\S]*?<\/footer>/gi, "")
   .replace(/<aside[\s\S]*?<\/aside>/gi, "");
 
-// Tenta extrair apenas o corpo do artigo (seção principal)
 const articleMatch = pmcTexto.match(/<article[\s\S]*?<\/article>/i) ||
                      pmcTexto.match(/<main[\s\S]*?<\/main>/i) ||
                      pmcTexto.match(/id="(?:content|main-content|article-body)"[\s\S]*?<\/div>/i);
@@ -262,9 +259,9 @@ pmcTexto = pmcTexto
   .replace(/\s{3,}/g, "\n\n")
   .trim();
 
-if (texto.length > 3000) {
+if (pmcTexto.length > 3000) {
   return {
-    texto: texto.substring(0, 30000),
+    texto: pmcTexto.substring(0, 30000),
     fonte: "PubMed Central",
     completo: true,
     url: `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`,
