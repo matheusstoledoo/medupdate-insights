@@ -8,31 +8,47 @@ const corsHeaders = {
 
 const TEMAS_QUERIES: Record<string, string> = {
   "Insuficiência Cardíaca":
-    '(heart failure[MeSH] OR "heart failure"[tiab]) AND (treatment[tiab] OR therapy[tiab] OR management[tiab])',
+    '(heart failure[MeSH Terms]) AND (treatment[tiab] OR therapy[tiab] OR management[tiab] OR outcomes[tiab] OR prognosis[tiab])',
+  
   "Arritmias / FA":
-    '(atrial fibrillation[MeSH] OR arrhythmia[MeSH] OR "cardiac arrhythmia"[tiab])',
+    '(atrial fibrillation[MeSH Terms] OR arrhythmias, cardiac[MeSH Terms] OR ventricular tachycardia[MeSH Terms] OR atrial flutter[MeSH Terms])',
+  
   "Cardiopatia Isquêmica":
-    '(myocardial infarction[MeSH] OR "coronary artery disease"[MeSH] OR ACS[tiab])',
+    '(myocardial infarction[MeSH Terms] OR coronary artery disease[MeSH Terms] OR acute coronary syndrome[tiab] OR STEMI[tiab] OR NSTEMI[tiab] OR unstable angina[MeSH Terms])',
+  
   "Hipertensão Arterial":
-    '(hypertension[MeSH] OR "blood pressure"[tiab]) AND (treatment[tiab] OR therapy[tiab])',
+    '(hypertension[MeSH Terms]) AND (drug therapy[MeSH Subheading] OR treatment outcome[MeSH Terms] OR antihypertensive agents[MeSH Terms])',
+  
   "Valvopatias":
-    "(heart valve diseases[MeSH] OR aortic stenosis[MeSH] OR mitral valve[MeSH])",
+    '(heart valve diseases[MeSH Terms] OR aortic valve stenosis[MeSH Terms] OR mitral valve insufficiency[MeSH Terms] OR TAVR[tiab] OR TAVI[tiab] OR transcatheter aortic valve[tiab])',
+  
   "Cardiologia Preventiva":
-    "(cardiovascular diseases[MeSH]) AND (prevention[tiab] OR risk factors[MeSH])",
-  "Miocardiopatias": "(cardiomyopathies[MeSH] OR cardiomyopathy[tiab])",
+    '(cardiovascular diseases[MeSH Terms]) AND (primary prevention[tiab] OR secondary prevention[tiab] OR cardiovascular risk[tiab] OR lipid-lowering[tiab] OR statins[tiab])',
+  
+  "Miocardiopatias":
+    '(cardiomyopathies[MeSH Terms] OR hypertrophic cardiomyopathy[MeSH Terms] OR dilated cardiomyopathy[tiab] OR cardiac amyloidosis[tiab] OR ATTR[tiab])',
+  
   "Cardio-oncologia":
-    '(cardiotoxicity[tiab] OR cardio-oncology[tiab] OR "cancer AND heart")',
+    '(cardiotoxicity[tiab] OR cardio-oncology[tiab] OR cardiovascular complications[tiab]) AND (antineoplastic agents[MeSH Terms] OR immunotherapy[MeSH Terms] OR cancer[tiab])',
+  
   "Imagem Cardíaca":
-    "(echocardiography[MeSH] OR cardiac imaging[tiab] OR cardiac MRI[tiab])",
+    '(echocardiography[MeSH Terms] OR cardiac magnetic resonance[tiab] OR cardiac MRI[tiab] OR cardiac CT[tiab] OR coronary computed tomography[tiab])',
+  
   "Dispositivos / Eletrof.":
-    "(defibrillators[MeSH] OR pacemaker[tiab] OR cardiac resynchronization[MeSH])",
+    '(defibrillators, implantable[MeSH Terms] OR cardiac resynchronization therapy[MeSH Terms] OR pacemaker, artificial[MeSH Terms] OR catheter ablation[MeSH Terms] OR subcutaneous ICD[tiab])',
+  
   "Reabilitação Cardíaca":
-    '(cardiac rehabilitation[MeSH] OR "cardiac rehab"[tiab])',
-  "Síncope / Lipotímia": "(syncope[MeSH] OR presyncope[tiab])",
+    '(cardiac rehabilitation[MeSH Terms]) OR (exercise therapy[MeSH Terms] AND cardiovascular diseases[MeSH Terms])',
+  
+  "Síncope / Lipotímia":
+    '(syncope[MeSH Terms] OR syncope, vasovagal[MeSH Terms] OR presyncope[tiab] OR orthostatic hypotension[MeSH Terms])',
 };
 
+const JOURNALS_ALTO_IMPACTO =
+  '("N Engl J Med"[Journal] OR "Lancet"[Journal] OR "JAMA"[Journal] OR "Circulation"[Journal] OR "J Am Coll Cardiol"[Journal] OR "Eur Heart J"[Journal] OR "JAMA Cardiol"[Journal] OR "Heart"[Journal] OR "BMJ"[Journal])';
+
 const FILTROS_BASE =
-  ' AND (randomized controlled trial[pt] OR meta-analysis[pt] OR systematic review[pt] OR practice guideline[pt]) AND ("last 30 days"[PDat]) AND (humans[MeSH])';
+  ` AND (randomized controlled trial[pt] OR meta-analysis[pt] OR systematic review[pt] OR practice guideline[pt]) AND ("last 30 days"[PDat]) AND (humans[MeSH Terms]) AND ${JOURNALS_ALTO_IMPACTO}`;
 
 function buildPrompt(textoParaAnalise: string, fonteUsada: string, temTextoCompleto: boolean): string {
   return `Você é um cardiologista especialista em medicina baseada em evidências. Você recebeu o ${temTextoCompleto ? `texto completo (fonte: ${fonteUsada})` : 'ABSTRACT apenas'} de um artigo científico e deve gerar uma análise estruturada, robusta e clinicamente útil, suficiente para que um médico possa entender e interpretar o estudo sem precisar ler o original.
@@ -314,7 +330,7 @@ Deno.serve(async (req) => {
   for (const tema of temasSolicitados) {
     const queryTema = TEMAS_QUERIES[tema];
     const fullQuery = queryTema + FILTROS_BASE;
-    const maxArticles = temasSolicitados.length === 1 ? 5 : 1;
+    const maxArticles = temasSolicitados.length === 1 ? 5 : 3;
 
     console.log(`[TEMA] ${tema} — retmax=${maxArticles}`);
 
