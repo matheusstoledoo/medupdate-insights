@@ -229,7 +229,14 @@ const Feed = () => {
                 modo === m.key ? "text-white" : "text-white/50 hover:text-white/70"
               }`}
             >
-              {m.label}
+              <span className="flex items-center gap-1.5">
+                {m.label}
+                {m.badge != null && (
+                  <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
+                    {m.badge}
+                  </span>
+                )}
+              </span>
               {modo === m.key && (
                 <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-white rounded-full" />
               )}
@@ -239,7 +246,9 @@ const Feed = () => {
       </div>
 
       <main className="container max-w-[720px] py-8">
-        {modo === "upload" ? (
+        {modo === "revisoes" ? (
+          <RevisoesInline />
+        ) : modo === "upload" ? (
           <UploadArtigo />
         ) : modo === "busca" ? (
           <BuscaAtiva />
