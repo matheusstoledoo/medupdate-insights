@@ -1,10 +1,11 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ArtigoHeader from "@/components/artigo/ArtigoHeader";
 import AnaliseEstudo from "@/components/artigo/AnaliseEstudo";
 import AvaliacaoQualidade from "@/components/artigo/AvaliacaoQualidade";
+import QuestoesClinicas from "@/components/artigo/QuestoesClinicas";
 import ArticleChat from "@/components/ArticleChat";
 
 const Artigo = () => {
@@ -68,13 +69,8 @@ const Artigo = () => {
         {/* SEÇÃO 3: AVALIAÇÃO DA QUALIDADE */}
         <AvaliacaoQualidade artigo={artigo} />
 
-        {/* SEÇÃO 4: QUESTÃO CLÍNICA */}
-        <Link
-          to={`/quiz/${artigo.id}`}
-          className="inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          Responder questão clínica →
-        </Link>
+        {/* SEÇÃO 4: QUESTÕES CLÍNICAS */}
+        <QuestoesClinicas artigo={artigo} />
 
         <ArticleChat
           articleContent={[
