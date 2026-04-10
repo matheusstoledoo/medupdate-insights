@@ -7,6 +7,7 @@ import AnaliseEstudo from "@/components/artigo/AnaliseEstudo";
 import AvaliacaoQualidade from "@/components/artigo/AvaliacaoQualidade";
 import QuestoesClinicas from "@/components/artigo/QuestoesClinicas";
 import ArticleChat from "@/components/ArticleChat";
+import AddToReviewButton from "@/components/artigo/AddToReviewButton";
 
 const Artigo = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,6 +72,8 @@ const Artigo = () => {
 
         {/* SEÇÃO 4: QUESTÕES CLÍNICAS */}
         <QuestoesClinicas artigo={artigo} />
+
+        <AddToReviewButton artigoId={artigo.id} />
 
         <ArticleChat
           articleContent={[
