@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import Header from "@/components/Header";
 import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +28,7 @@ interface RevisaoComArtigo {
   };
 }
 
-const Revisoes = () => {
+const RevisoesInline = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -136,22 +135,19 @@ const Revisoes = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container max-w-[720px] py-8">
-          <div className="h-64 rounded-lg bg-muted animate-pulse" />
-        </main>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 rounded-lg bg-muted animate-pulse" />
+        ))}
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container max-w-[720px] py-8 text-center">
-          <p className="text-muted-foreground">Faça login para acessar suas revisões.</p>
-        </main>
+      <div className="text-center py-16">
+        <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+        <p className="text-sm text-muted-foreground">Faça login para acessar suas revisões.</p>
       </div>
     );
   }
@@ -163,32 +159,18 @@ const Revisoes = () => {
         animatingIds.has(r.id) ? "opacity-0 translate-x-4" : "opacity-100"
       }`}
     >
-      <button
-        onClick={() => navigate(`/artigo/${r.artigo_id}`)}
-        className="text-left w-full"
-      >
+      <button onClick={() => navigate(`/artigo/${r.artigo_id}`)} className="text-left w-full">
         <h3 className="font-serif text-sm font-semibold text-foreground leading-snug mb-1">
           {r.artigo?.titulo}
         </h3>
         <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono mb-1">
           {r.artigo?.journal && <span>{r.artigo.journal}</span>}
-          {r.artigo?.ano && (
-            <>
-              <span>·</span>
-              <span>{r.artigo.ano}</span>
-            </>
-          )}
-          {r.artigo?.tipo_estudo && (
-            <>
-              <span>·</span>
-              <span>{r.artigo.tipo_estudo}</span>
-            </>
-          )}
+          {r.artigo?.ano && (<><span>·</span><span>{r.artigo.ano}</span></>)}
+          {r.artigo?.tipo_estudo && (<><span>·</span><span>{r.artigo.tipo_estudo}</span></>)}
         </div>
         {r.artigo?.resumo_pt && (
           <p className="text-xs text-muted-foreground line-clamp-1">
-            {r.artigo.resumo_pt.slice(0, 100)}
-            {r.artigo.resumo_pt.length > 100 ? "…" : ""}
+            {r.artigo.resumo_pt.slice(0, 100)}{r.artigo.resumo_pt.length > 100 ? "…" : ""}
           </p>
         )}
       </button>
@@ -221,19 +203,10 @@ const Revisoes = () => {
   );
 
   const Section = ({
-    title,
-    count,
-    open,
-    onOpenChange,
-    children,
-    badgeColor = "bg-primary",
+    title, count, open, onOpenChange, children, badgeColor = "bg-primary",
   }: {
-    title: string;
-    count: number;
-    open: boolean;
-    onOpenChange: (v: boolean) => void;
-    children: React.ReactNode;
-    badgeColor?: string;
+    title: string; count: number; open: boolean; onOpenChange: (v: boolean) => void;
+    children: React.ReactNode; badgeColor?: string;
   }) => (
     <Collapsible open={open} onOpenChange={onOpenChange} className="mb-4">
       <CollapsibleTrigger className="flex items-center gap-2 w-full py-3 text-left">
@@ -247,79 +220,51 @@ const Revisoes = () => {
     </Collapsible>
   );
 
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 rounded-lg bg-muted animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (pendentesHoje.length === 0 && estaSemana.length === 0 && concluidasHojeList.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+        <p className="text-lg font-medium text-foreground mb-1">Nenhuma revisão pendente hoje 🎉</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          Explore artigos e adicione-os à sua fila de revisões.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container max-w-[720px] py-8">
-        <h1 className="font-serif text-xl font-bold mb-6">Suas Revisões</h1>
+    <div>
+      <h2 className="font-serif text-xl font-bold mb-6">Suas Revisões</h2>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-lg bg-muted animate-pulse" />
-            ))}
-          </div>
-        ) : pendentesHoje.length === 0 && estaSemana.length === 0 && concluidasHojeList.length === 0 ? (
-          <div className="text-center py-16">
-            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-            <p className="text-lg font-medium text-foreground mb-1">Nenhuma revisão pendente hoje 🎉</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Explore artigos novos e adicione-os à sua fila de revisões.
-            </p>
-            <button
-              onClick={() => navigate("/feed")}
-              className="text-sm text-primary hover:underline"
-            >
-              Explorar artigos →
-            </button>
-          </div>
-        ) : (
-          <>
-            <Section
-              title="Hoje"
-              count={pendentesHoje.length}
-              open={hojeOpen}
-              onOpenChange={setHojeOpen}
-              badgeColor="bg-destructive"
-            >
-              {pendentesHoje.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2 pl-6">Nenhuma revisão pendente hoje 🎉</p>
-              ) : (
-                pendentesHoje.map((r) => renderCard(r, true))
-              )}
-            </Section>
+      <Section title="Hoje" count={pendentesHoje.length} open={hojeOpen} onOpenChange={setHojeOpen} badgeColor="bg-destructive">
+        {pendentesHoje.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-2 pl-6">Nenhuma revisão pendente hoje 🎉</p>
+        ) : pendentesHoje.map((r) => renderCard(r, true))}
+      </Section>
 
-            <Section
-              title="Esta semana"
-              count={estaSemana.length}
-              open={semanaOpen}
-              onOpenChange={setSemanaOpen}
-            >
-              {estaSemana.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2 pl-6">Nenhuma revisão agendada para esta semana.</p>
-              ) : (
-                estaSemana.map((r) => renderCard(r, false))
-              )}
-            </Section>
+      <Section title="Esta semana" count={estaSemana.length} open={semanaOpen} onOpenChange={setSemanaOpen}>
+        {estaSemana.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-2 pl-6">Nenhuma revisão agendada para esta semana.</p>
+        ) : estaSemana.map((r) => renderCard(r, false))}
+      </Section>
 
-            <Section
-              title="Concluídas hoje"
-              count={concluidasHojeList.length}
-              open={concluidasOpen}
-              onOpenChange={setConcluidasOpen}
-              badgeColor="bg-green-600"
-            >
-              {concluidasHojeList.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2 pl-6">Nenhuma revisão concluída hoje.</p>
-              ) : (
-                concluidasHojeList.map((r) => renderCard(r, false))
-              )}
-            </Section>
-          </>
-        )}
-      </main>
+      <Section title="Concluídas hoje" count={concluidasHojeList.length} open={concluidasOpen} onOpenChange={setConcluidasOpen} badgeColor="bg-green-600">
+        {concluidasHojeList.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-2 pl-6">Nenhuma revisão concluída hoje.</p>
+        ) : concluidasHojeList.map((r) => renderCard(r, false))}
+      </Section>
     </div>
   );
 };
 
-export default Revisoes;
+export default RevisoesInline;

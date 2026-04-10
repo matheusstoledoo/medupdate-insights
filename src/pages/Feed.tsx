@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { abrirLinkExterno, getLinkArtigo, getLabelLinkArtigo } from "@/utils/artigoUtils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -24,9 +26,10 @@ import Header from "@/components/Header";
 import GradeBadge from "@/components/GradeBadge";
 import BuscaAtiva from "@/components/BuscaAtiva";
 import UploadArtigo from "@/components/UploadArtigo";
+import RevisoesInline from "@/components/RevisoesInline";
 import { useStreak } from "@/hooks/use-streak";
 
-type Modo = "atualizacoes" | "busca" | "upload";
+type Modo = "atualizacoes" | "busca" | "upload" | "revisoes";
 type FeedState = "temas" | "artigos" | "top10";
 
 interface Tema {
@@ -89,6 +92,7 @@ const formatarBadgeData = (dataStr: string | null) => {
 };
 
 const Feed = () => {
+  const { user } = useAuth();
   const { streakAtual } = useStreak();
   const [modo, setModo] = useState<Modo>("atualizacoes");
   const [feedState, setFeedState] = useState<FeedState>("temas");
@@ -183,10 +187,29 @@ const Feed = () => {
     buscar();
   }, [feedState, temaSelecionado, modo]);
 
-  const modos: { key: Modo; label: string }[] = [
+  const { data: pendentes } = useQuery({
+    queryKey: ["revisoes-pendentes", user?.id],
+    queryFn: async () => {
+      const amanha = new Date();
+      amanha.setDate(amanha.getDate() + 1);
+      amanha.setHours(0, 0, 0, 0);
+      const { count, error } = await supabase
+        .from("revisoes_artigo")
+        .select("id", { count: "exact", head: true })
+        .eq("usuario_id", user!.id)
+        .lte("proxima_revisao", amanha.toISOString());
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!user,
+    refetchInterval: 60000,
+  });
+
+  const modos: { key: Modo; label: string; badge?: number | null }[] = [
     { key: "atualizacoes", label: "Atualizações" },
     { key: "busca", label: "Busca Ativa" },
     { key: "upload", label: "Upload" },
+    { key: "revisoes", label: "Revisões", badge: pendentes && pendentes > 0 ? pendentes : null },
   ];
 
   return (
@@ -207,7 +230,14 @@ const Feed = () => {
                 modo === m.key ? "text-white" : "text-white/50 hover:text-white/70"
               }`}
             >
-              {m.label}
+              <span className="flex items-center gap-1.5">
+                {m.label}
+                {m.badge != null && (
+                  <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
+                    {m.badge}
+                  </span>
+                )}
+              </span>
               {modo === m.key && (
                 <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-white rounded-full" />
               )}
@@ -217,7 +247,9 @@ const Feed = () => {
       </div>
 
       <main className="container max-w-[720px] py-8">
-        {modo === "upload" ? (
+        {modo === "revisoes" ? (
+          <RevisoesInline />
+        ) : modo === "upload" ? (
           <UploadArtigo />
         ) : modo === "busca" ? (
           <BuscaAtiva />
