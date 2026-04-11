@@ -197,6 +197,24 @@ export type Database = {
         }
         Relationships: []
       }
+      controle_processamento: {
+        Row: {
+          chave: string
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          chave: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          chave?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: []
+      }
       historico_respostas: {
         Row: {
           artigo_id: string

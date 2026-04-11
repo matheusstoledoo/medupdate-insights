@@ -6,40 +6,44 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const TEMAS_LISTA = [
+  "Insuficiência Cardíaca",
+  "Arritmias / FA",
+  "Cardiopatia Isquêmica",
+  "Hipertensão Arterial",
+  "Valvopatias",
+  "Cardiologia Preventiva",
+  "Miocardiopatias",
+  "Cardio-oncologia",
+  "Imagem Cardíaca",
+  "Dispositivos / Eletrof.",
+  "Reabilitação Cardíaca",
+  "Síncope / Lipotímia",
+];
+
 const TEMAS_QUERIES: Record<string, string> = {
   "Insuficiência Cardíaca":
     '(heart failure[MeSH Terms]) AND (treatment[tiab] OR therapy[tiab] OR management[tiab] OR outcomes[tiab] OR prognosis[tiab])',
-  
   "Arritmias / FA":
     '(atrial fibrillation[MeSH Terms] OR arrhythmias, cardiac[MeSH Terms] OR ventricular tachycardia[MeSH Terms] OR atrial flutter[MeSH Terms])',
-  
   "Cardiopatia Isquêmica":
     '(myocardial infarction[MeSH Terms] OR coronary artery disease[MeSH Terms] OR acute coronary syndrome[tiab] OR STEMI[tiab] OR NSTEMI[tiab] OR unstable angina[MeSH Terms])',
-  
   "Hipertensão Arterial":
     '(hypertension[MeSH Terms]) AND (drug therapy[MeSH Subheading] OR treatment outcome[MeSH Terms] OR antihypertensive agents[MeSH Terms])',
-  
   "Valvopatias":
     '(heart valve diseases[MeSH Terms] OR aortic valve stenosis[MeSH Terms] OR mitral valve insufficiency[MeSH Terms] OR TAVR[tiab] OR TAVI[tiab] OR transcatheter aortic valve[tiab])',
-  
   "Cardiologia Preventiva":
     '(cardiovascular diseases[MeSH Terms]) AND (primary prevention[tiab] OR secondary prevention[tiab] OR cardiovascular risk[tiab] OR lipid-lowering[tiab] OR statins[tiab])',
-  
   "Miocardiopatias":
     '(cardiomyopathies[MeSH Terms] OR hypertrophic cardiomyopathy[MeSH Terms] OR dilated cardiomyopathy[tiab] OR cardiac amyloidosis[tiab] OR ATTR[tiab])',
-  
   "Cardio-oncologia":
     '(cardiotoxicity[tiab] OR cardio-oncology[tiab] OR cardiovascular complications[tiab]) AND (antineoplastic agents[MeSH Terms] OR immunotherapy[MeSH Terms] OR cancer[tiab])',
-  
   "Imagem Cardíaca":
     '(echocardiography[MeSH Terms] OR cardiac magnetic resonance[tiab] OR cardiac MRI[tiab] OR cardiac CT[tiab] OR coronary computed tomography[tiab])',
-  
   "Dispositivos / Eletrof.":
     '(defibrillators, implantable[MeSH Terms] OR cardiac resynchronization therapy[MeSH Terms] OR pacemaker, artificial[MeSH Terms] OR catheter ablation[MeSH Terms] OR subcutaneous ICD[tiab])',
-  
   "Reabilitação Cardíaca":
     '(cardiac rehabilitation[MeSH Terms]) OR (exercise therapy[MeSH Terms] AND cardiovascular diseases[MeSH Terms])',
-  
   "Síncope / Lipotímia":
     '(syncope[MeSH Terms] OR syncope, vasovagal[MeSH Terms] OR presyncope[tiab] OR orthostatic hypotension[MeSH Terms])',
 };
@@ -81,110 +85,102 @@ SE for Guideline/Consenso: aplique AGREE II resumido
 ## Retorne SOMENTE este JSON válido, sem texto antes ou depois:
 {
   "metodologia": {
-    "delineamento": "Tipo exato do estudo (ex: ECRC duplo-cego, multicêntrico, placebo-controlado)",
+    "delineamento": "Tipo exato do estudo",
     "populacao": {
-      "descricao": "Descrição detalhada: TODOS os critérios de inclusão/exclusão, condição clínica exata, gravidade, comorbidades",
-      "n_total": "número total randomizado, número alocado no grupo controle, número alocado no grupo intervenção",
-      "caracteristicas_basais": "Idade mediana/média, % mulheres, % com diabetes, FEVE, condições associadas relevantes — com números",
-      "criterios_inclusao": "Liste TODOS os critérios com detalhes numéricos (ex: NT-proBNP > X, LVEF ≤ X%) e/ou descritivos",
-      "criterios_exclusao": "Liste TODOS os critérios de exclusão mencionados no texto — procure nas seções Methods/Participants/Eligibility"
+      "descricao": "Descrição detalhada",
+      "n_total": "número total",
+      "caracteristicas_basais": "Idade, % mulheres, etc.",
+      "criterios_inclusao": "Liste TODOS",
+      "criterios_exclusao": "Liste TODOS"
     },
-    "intervencao": "Droga/procedimento, dose exata, via, duração, quando iniciado em relação ao evento clínico",
-    "comparador": "Placebo ou comparador ativo com TODOS os detalhes",
-    "desfecho_primario": "Definição exata do desfecho primário composto ou simples, com horizonte de tempo e os itens avaliados",
-    "desfechos_secundarios": "Lista dos principais desfechos secundários com suas definições",
-    "seguimento": "Duração e visitas de seguimento",
-    "randomizacao": "Método, estratificação, razão de alocação",
-    "analise_estatistica": "Teste primário (log-rank, t-test etc.), modelo estatístico (Cox, logístico etc.), potência calculada (%), taxa de evento esperada no grupo controle, nível alfa, software usado. Procure na seção Statistical Analysis"
+    "intervencao": "Droga/procedimento, dose exata",
+    "comparador": "Placebo ou comparador ativo",
+    "desfecho_primario": "Definição exata",
+    "desfechos_secundarios": "Lista dos principais",
+    "seguimento": "Duração",
+    "randomizacao": "Método",
+    "analise_estatistica": "Teste primário, modelo estatístico"
   },
   "resultados": {
     "desfecho_primario": {
-      "grupo_intervencao": "n (%) que atingiram o desfecho",
-      "grupo_controle": "n (%) que atingiram o desfecho",
+      "grupo_intervencao": "n (%)",
+      "grupo_controle": "n (%)",
       "estimativa": "HR/OR/RR com IC 95% e p-valor",
-      "interpretacao": "O que esse resultado significa clinicamente"
+      "interpretacao": "Significado clínico"
     },
     "desfechos_secundarios": [
-      {
-        "nome": "Nome do desfecho",
-        "resultado": "n (%), HR/OR/RR, IC 95%, p-valor",
-        "interpretacao": "breve interpretação clínica"
-      }
+      { "nome": "", "resultado": "", "interpretacao": "" }
     ],
     "seguranca": {
-      "eventos_adversos_principais": "Com incidências numéricas comparativas nos dois grupos",
-      "descontinuacoes": "Taxa de descontinuação do medicamento por eventos adversos em cada grupo — procure em Safety/Adverse Events"
+      "eventos_adversos_principais": "",
+      "descontinuacoes": ""
     },
-    "analises_pre_especificadas": "Subgrupos ou meta-análise pré-especificados com resultados numéricos"
+    "analises_pre_especificadas": ""
   },
   "conclusao": {
-    "conclusao_dos_autores": "O que os autores concluíram exatamente, incluindo a nuance entre o resultado principal e dados adicionais",
-    "implicacao_clinica": "O que esse estudo muda ou não muda na prática clínica cardiológica",
-    "limitacoes": "Liste TODAS as limitações declaradas pelos autores — procure no final da Discussion/Conclusions. Não deixe vazio mesmo que pareça implícito",
-    "contexto_evidencia": "Como esse resultado se encaixa no corpo de evidências existente (outros estudos mencionados)"
+    "conclusao_dos_autores": "",
+    "implicacao_clinica": "",
+    "limitacoes": "",
+    "contexto_evidencia": ""
   },
   "titulo": "título completo em português",
   "journal": "nome do periódico",
   "ano": "ano de publicação",
   "tipo_estudo": "tipo exato identificado",
-  "ferramentas_usadas": "lista das ferramentas aplicadas separadas por vírgula",
-  "resumo_pt": "3-4 frases sintetizando o artigo para especialistas",
+  "ferramentas_usadas": "lista das ferramentas aplicadas",
+  "resumo_pt": "3-4 frases sintetizando o artigo",
   "grade": "Alto, Moderado, Baixo ou Muito baixo",
-  "grade_justificativa": "justificativa específica referenciando os domínios GRADE",
+  "grade_justificativa": "justificativa específica",
   "rob_resultado": "Baixo risco, Algumas preocupações ou Alto risco",
-  "vieses_detalhados": "Para RCT — D1: [julgamento] — [justificativa]. D2-D5 idem. Para outros tipos — adaptar conforme ferramenta aplicada.",
+  "vieses_detalhados": "Para RCT — D1-D5. Para outros — adaptar.",
   "jadad_score": null,
   "jadad_justificativa": "pontuação detalhada apenas se RCT",
   "amstar2_classificacao": null,
   "amstar2_justificativa": "apenas se revisão sistemática",
   "robis_resultado": null,
   "robis_justificativa": "apenas se revisão sistemática",
-  "analise_metodologica": "avaliação crítica independente em 3-4 frases",
-  "limitacoes_autores": "limitações declaradas pelos próprios autores",
-  "conflitos_interesse": "conflitos de interesse e fonte de financiamento",
-  "contexto_vs_anterior": "como este estudo muda, confirma ou contradiz a evidência prévia",
+  "analise_metodologica": "avaliação crítica independente",
+  "limitacoes_autores": "limitações declaradas",
+  "conflitos_interesse": "conflitos e financiamento",
+  "contexto_vs_anterior": "como muda a evidência prévia",
   "casp_resumo": "avaliação CASP resumida",
-  "introducao_resumo": "Mínimo 150 palavras. Descreva: contexto epidemiológico com dados numéricos, lacuna de evidência que motivou o estudo, hipótese testada e relevância clínica da pergunta",
-  "metodologia_detalhada": "Mínimo 400 palavras. Descreva: delineamento completo, população com TODOS os critérios de inclusão/exclusão numéricos, características basais detalhadas, intervenção com dose/via/duração, todos os desfechos primários e secundários com definições exatas, período de seguimento, método de randomização e estratificação, análise estatística com modelo, potência e alfa",
-  "resultados_principais": "Mínimo 300 palavras. Inclua: desfecho primário com n e % em cada grupo, HR/OR/RR, IC 95%, p-valor. Todos os desfechos secundários com mesmos dados. Eventos adversos com incidências comparativas. Meta-análise se houver. NNT/NNH quando aplicável",
-  "conclusao_autores": "Mínimo 150 palavras. Reproduza fielmente a conclusão dos autores incluindo: resultado do desfecho primário com os números, nuances entre resultado principal e dados secundários ou meta-análise, declaração explícita sobre significância estatística e direção do efeito",
-  "implicacao_clinica": "Mínimo 150 palavras. Explique: o que esse resultado muda ou não muda na prática, para qual perfil de paciente se aplica, como se integra às diretrizes vigentes, se há conflito com evidências anteriores e como resolver na prática clínica do dia a dia",
+  "introducao_resumo": "Mínimo 150 palavras. Contexto epidemiológico, lacuna, hipótese",
+  "metodologia_detalhada": "Mínimo 400 palavras. Delineamento completo",
+  "resultados_principais": "Mínimo 300 palavras. Desfechos com números",
+  "conclusao_autores": "Mínimo 150 palavras. Conclusão fiel dos autores",
+  "implicacao_clinica": "Mínimo 150 palavras. Impacto na prática",
   "questao_1": {
-  "enunciado": "Caso clínico de 2-3 frases baseado nos resultados, com dados clínicos realistas",
-  "alt_a": "alternativa plausível mas incorreta",
-  "alt_b": "alternativa plausível mas incorreta", 
-  "alt_c": "alternativa correta baseada nos resultados",
-  "alt_d": "alternativa plausível mas incorreta",
-  "resposta_correta": "C",
-  "feedback": "Explicação com HR, IC 95%, p-valor do estudo"
-},
-"questao_2": {
-  "enunciado": "Questão sobre aspecto metodológico ou de segurança",
-  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
-  "resposta_correta": "A, B, C ou D",
-  "feedback": "Explicação referenciando dado específico do estudo"
-},
-"questao_3": {
-  "enunciado": "Questão sobre aplicação clínica ou interpretação dos resultados",
-  "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
-  "resposta_correta": "A, B, C ou D",
-  "feedback": "Explicação referenciando dado específico do estudo"
-},
+    "enunciado": "Caso clínico de 2-3 frases",
+    "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+    "resposta_correta": "C",
+    "feedback": "Explicação com HR, IC 95%, p-valor"
+  },
+  "questao_2": {
+    "enunciado": "Questão metodológica ou de segurança",
+    "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+    "resposta_correta": "A, B, C ou D",
+    "feedback": "Explicação com dado específico"
+  },
+  "questao_3": {
+    "enunciado": "Questão sobre aplicação clínica",
+    "alt_a": "", "alt_b": "", "alt_c": "", "alt_d": "",
+    "resposta_correta": "A, B, C ou D",
+    "feedback": "Explicação com dado específico"
+  }
+}
 
 Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
 ${textoParaAnalise}`;
 }
 
 function buildInsertPayload(parsed: Record<string, any>, extras: Record<string, any>) {
- const analiseCompleta: Record<string, any> = {};
-if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
-if (parsed.resultados) analiseCompleta.resultados = parsed.resultados;
-if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
-if (parsed.questao_1) analiseCompleta.questao_1 = parsed.questao_1;
-if (parsed.questao_2) analiseCompleta.questao_2 = parsed.questao_2;
-if (parsed.questao_3) analiseCompleta.questao_3 = parsed.questao_3;
-  // Mapear questao_1 para campos flat (compatibilidade com frontend)
-const q1 = parsed.questao_1;
+  const analiseCompleta: Record<string, any> = {};
+  if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
+  if (parsed.resultados) analiseCompleta.resultados = parsed.resultados;
+  if (parsed.conclusao) analiseCompleta.conclusao = parsed.conclusao;
+  if (parsed.questao_1) analiseCompleta.questao_1 = parsed.questao_1;
+  if (parsed.questao_2) analiseCompleta.questao_2 = parsed.questao_2;
+  if (parsed.questao_3) analiseCompleta.questao_3 = parsed.questao_3;
 
   return {
     titulo: parsed.titulo || extras.titulo || "Artigo sem título",
@@ -226,13 +222,8 @@ const q1 = parsed.questao_1;
   };
 }
 
-async function tentarPMC(
-  pmid: string
-): Promise<{
-  texto: string;
-  fonte: string;
-  completo: boolean;
-  url: string | null;
+async function tentarPMC(pmid: string): Promise<{
+  texto: string; fonte: string; completo: boolean; url: string | null;
 } | null> {
   try {
     const idConvResp = await fetch(
@@ -289,6 +280,37 @@ async function tentarPMC(
   return null;
 }
 
+async function getProximoTema(supabase: any): Promise<{ tema: string; proximoTema: string }> {
+  const { data } = await supabase
+    .from("controle_processamento")
+    .select("valor")
+    .eq("chave", "ultimo_tema_processado")
+    .maybeSingle();
+
+  const ultimoTema = data?.valor || null;
+  let idx = 0;
+
+  if (ultimoTema) {
+    const lastIdx = TEMAS_LISTA.indexOf(ultimoTema);
+    if (lastIdx !== -1) {
+      idx = (lastIdx + 1) % TEMAS_LISTA.length;
+    }
+  }
+
+  const tema = TEMAS_LISTA[idx];
+  const proximoTema = TEMAS_LISTA[(idx + 1) % TEMAS_LISTA.length];
+  return { tema, proximoTema };
+}
+
+async function salvarUltimoTema(supabase: any, tema: string) {
+  await supabase
+    .from("controle_processamento")
+    .upsert(
+      { chave: "ultimo_tema_processado", valor: tema, updated_at: new Date().toISOString() },
+      { onConflict: "chave" }
+    );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -307,167 +329,177 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  let temasSolicitados: string[];
+  let temaParaProcessar: string;
+  let proximoTema: string;
 
   try {
     const body = await req.json().catch(() => ({}));
     if (body.tema && TEMAS_QUERIES[body.tema]) {
-      temasSolicitados = [body.tema];
+      temaParaProcessar = body.tema;
+      const idx = TEMAS_LISTA.indexOf(body.tema);
+      proximoTema = TEMAS_LISTA[(idx + 1) % TEMAS_LISTA.length];
     } else {
-      temasSolicitados = Object.keys(TEMAS_QUERIES);
+      const rotacao = await getProximoTema(supabase);
+      temaParaProcessar = rotacao.tema;
+      proximoTema = rotacao.proximoTema;
     }
   } catch {
-    temasSolicitados = Object.keys(TEMAS_QUERIES);
+    const rotacao = await getProximoTema(supabase);
+    temaParaProcessar = rotacao.tema;
+    proximoTema = rotacao.proximoTema;
   }
 
   const resultado = {
-    processados: 0,
-    pulados: 0,
+    tema_processado: temaParaProcessar,
+    artigos_inseridos: 0,
+    proximo_tema: proximoTema,
     erros: [] as string[],
-    temas_processados: [] as string[],
+    pulados: 0,
   };
 
-  for (const tema of temasSolicitados) {
-    const queryTema = TEMAS_QUERIES[tema];
-    const fullQuery = queryTema + FILTROS_BASE;
-    const maxArticles = temasSolicitados.length === 1 ? 5 : 3;
+  const queryTema = TEMAS_QUERIES[temaParaProcessar];
+  const fullQuery = queryTema + FILTROS_BASE;
+  const maxArticles = 3;
 
-    console.log(`[TEMA] ${tema} — retmax=${maxArticles}`);
+  console.log(`[TEMA] ${temaParaProcessar} — retmax=${maxArticles}`);
 
-    try {
-      const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(fullQuery)}&retmax=${maxArticles}&retmode=json&sort=date`;
-      const searchRes = await fetch(searchUrl, { signal: AbortSignal.timeout(15000) });
-      if (!searchRes.ok) {
-        resultado.erros.push(`PubMed search failed for ${tema}: ${searchRes.status}`);
-        continue;
-      }
-      const searchData = await searchRes.json();
-      const pmids: string[] = searchData?.esearchresult?.idlist ?? [];
-
-      if (pmids.length === 0) {
-        console.log(`[TEMA] ${tema}: nenhum PMID`);
-        continue;
-      }
-
-      for (const pmid of pmids) {
-        try {
-          const { data: existing } = await supabase
-            .from("artigos")
-            .select("id")
-            .eq("pmid", pmid)
-            .maybeSingle();
-          if (existing) {
-            resultado.pulados++;
-            continue;
-          }
-
-          const efetchResp = await fetch(
-            `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml&email=medupdate@app.com`,
-            { signal: AbortSignal.timeout(15000) }
-          );
-          if (!efetchResp.ok) {
-            resultado.erros.push(`EFetch failed for ${pmid}: ${efetchResp.status}`);
-            continue;
-          }
-          const xml = await efetchResp.text();
-
-          const titulo = xml.match(/<ArticleTitle>([^<]+)<\/ArticleTitle>/)?.[1]?.trim() || "";
-          const journal =
-            xml.match(/<ISOAbbreviation>([^<]+)<\/ISOAbbreviation>/)?.[1]?.trim() ||
-            xml.match(/<Title>([^<]+)<\/Title>/)?.[1]?.trim() || "";
-          const ano = parseInt(xml.match(/<PubDate>[\s\S]*?<Year>(\d{4})<\/Year>/)?.[1] || "0");
-          const doi = xml.match(/<ArticleId IdType="doi">([^<]+)<\/ArticleId>/)?.[1]?.trim();
-
-          const abstractBlocos = [...xml.matchAll(/<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/g)];
-          const abstractText = abstractBlocos
-            .map((b) => b[1].replace(/<[^>]+>/g, "").trim())
-            .filter((t) => t.length > 0)
-            .join("\n\n")
-            .trim();
-
-          if (!abstractText || abstractText.length < 50) {
-            resultado.erros.push(`Abstract too short for ${pmid}`);
-            continue;
-          }
-
-          const pmcResult = await tentarPMC(pmid);
-          const temTextoCompleto = !!pmcResult;
-          const textoParaAnalise = pmcResult ? pmcResult.texto : abstractText;
-          const fonteUsada = pmcResult ? pmcResult.fonte : "abstract";
-          const urlUsada = pmcResult ? pmcResult.url : null;
-
-          console.log(`[${tema}] PMID ${pmid}: fonte=${fonteUsada}, chars=${textoParaAnalise.length}`);
-
-          const promptAnalise = buildPrompt(textoParaAnalise, fonteUsada, temTextoCompleto);
-
-          const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {
-              "x-api-key": ANTHROPIC_API_KEY,
-              "anthropic-version": "2023-06-01",
-              "content-type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "claude-sonnet-4-20250514",
-              max_tokens: 10000,
-              messages: [{ role: "user", content: promptAnalise }],
-            }),
-            signal: AbortSignal.timeout(120000),
-          });
-
-          if (!claudeRes.ok) {
-            const errText = await claudeRes.text();
-            resultado.erros.push(`Claude error for ${pmid}: ${claudeRes.status} ${errText.substring(0, 200)}`);
-            continue;
-          }
-
-          const claudeData = await claudeRes.json();
-          const rawContent = claudeData?.content?.[0]?.text ?? "";
-          const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            resultado.erros.push(`No JSON from Claude for ${pmid}`);
-            continue;
-          }
-
-          const parsed = JSON.parse(jsonMatch[0]);
-          console.log(`[PARSE] Chaves retornadas pelo Claude: ${Object.keys(parsed).join(', ')}`);
-          console.log(`[PARSE] questao_1 existe: ${!!parsed.questao_1}`);
-          const anoFinal = parsed.ano || ano || new Date().getFullYear();
-          const linkFinal = urlUsada || (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
-
-          const insertPayload = buildInsertPayload(parsed, {
-            especialidade_tema: tema,
-            pmid,
-            link_original: linkFinal,
-            citacoes: 0,
-            score_relevancia: (anoFinal - 2020) * 10 + 50,
-            tem_texto_completo: temTextoCompleto,
-            url_texto_completo: urlUsada,
-            fonte_texto: fonteUsada,
-            data_publicacao: anoFinal ? `${anoFinal}-01-01` : null,
-            periodo_feed: "semanal",
-            data_entrada_feed: new Date().toISOString(),
-          });
-
-          const { error: insertErr } = await supabase.from("artigos").insert(insertPayload);
-
-          if (insertErr) {
-            resultado.erros.push(`DB error for ${pmid}: ${insertErr.message}`);
-            continue;
-          }
-          resultado.processados++;
-          resultado.temas_processados.push(tema);
-          console.log(`[✓] ${tema} — PMID ${pmid} salvo`);
-        } catch (e) {
-          resultado.erros.push(`Error ${pmid}: ${(e as Error).message}`);
-        }
-      }
-    } catch (e) {
-      resultado.erros.push(`Theme ${tema} failed: ${(e as Error).message}`);
+  try {
+    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(fullQuery)}&retmax=${maxArticles}&retmode=json&sort=date`;
+    const searchRes = await fetch(searchUrl, { signal: AbortSignal.timeout(15000) });
+    if (!searchRes.ok) {
+      resultado.erros.push(`PubMed search failed: ${searchRes.status}`);
+      return new Response(JSON.stringify(resultado), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const searchData = await searchRes.json();
+    const pmids: string[] = searchData?.esearchresult?.idlist ?? [];
+
+    if (pmids.length === 0) {
+      console.log(`[TEMA] ${temaParaProcessar}: nenhum PMID`);
+    }
+
+    for (const pmid of pmids) {
+      try {
+        const { data: existing } = await supabase
+          .from("artigos")
+          .select("id")
+          .eq("pmid", pmid)
+          .maybeSingle();
+        if (existing) {
+          resultado.pulados++;
+          continue;
+        }
+
+        const efetchResp = await fetch(
+          `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml&email=medupdate@app.com`,
+          { signal: AbortSignal.timeout(15000) }
+        );
+        if (!efetchResp.ok) {
+          resultado.erros.push(`EFetch failed for ${pmid}: ${efetchResp.status}`);
+          continue;
+        }
+        const xml = await efetchResp.text();
+
+        const titulo = xml.match(/<ArticleTitle>([^<]+)<\/ArticleTitle>/)?.[1]?.trim() || "";
+        const journal =
+          xml.match(/<ISOAbbreviation>([^<]+)<\/ISOAbbreviation>/)?.[1]?.trim() ||
+          xml.match(/<Title>([^<]+)<\/Title>/)?.[1]?.trim() || "";
+        const ano = parseInt(xml.match(/<PubDate>[\s\S]*?<Year>(\d{4})<\/Year>/)?.[1] || "0");
+        const doi = xml.match(/<ArticleId IdType="doi">([^<]+)<\/ArticleId>/)?.[1]?.trim();
+
+        const abstractBlocos = [...xml.matchAll(/<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/g)];
+        const abstractText = abstractBlocos
+          .map((b) => b[1].replace(/<[^>]+>/g, "").trim())
+          .filter((t) => t.length > 0)
+          .join("\n\n")
+          .trim();
+
+        if (!abstractText || abstractText.length < 50) {
+          resultado.erros.push(`Abstract too short for ${pmid}`);
+          continue;
+        }
+
+        const pmcResult = await tentarPMC(pmid);
+        const temTextoCompleto = !!pmcResult;
+        const textoParaAnalise = pmcResult ? pmcResult.texto : abstractText;
+        const fonteUsada = pmcResult ? pmcResult.fonte : "abstract";
+        const urlUsada = pmcResult ? pmcResult.url : null;
+
+        console.log(`[${temaParaProcessar}] PMID ${pmid}: fonte=${fonteUsada}, chars=${textoParaAnalise.length}`);
+
+        const promptAnalise = buildPrompt(textoParaAnalise, fonteUsada, temTextoCompleto);
+
+        const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 10000,
+            messages: [{ role: "user", content: promptAnalise }],
+          }),
+          signal: AbortSignal.timeout(120000),
+        });
+
+        if (!claudeRes.ok) {
+          const errText = await claudeRes.text();
+          resultado.erros.push(`Claude error for ${pmid}: ${claudeRes.status} ${errText.substring(0, 200)}`);
+          continue;
+        }
+
+        const claudeData = await claudeRes.json();
+        const rawContent = claudeData?.content?.[0]?.text ?? "";
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          resultado.erros.push(`No JSON from Claude for ${pmid}`);
+          continue;
+        }
+
+        const parsed = JSON.parse(jsonMatch[0]);
+        console.log(`[PARSE] Chaves retornadas pelo Claude: ${Object.keys(parsed).join(', ')}`);
+        console.log(`[PARSE] questao_1 existe: ${!!parsed.questao_1}`);
+
+        const anoFinal = parsed.ano || ano || new Date().getFullYear();
+        const linkFinal = urlUsada || (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
+
+        const insertPayload = buildInsertPayload(parsed, {
+          especialidade_tema: temaParaProcessar,
+          pmid,
+          link_original: linkFinal,
+          citacoes: 0,
+          score_relevancia: (anoFinal - 2020) * 10 + 50,
+          tem_texto_completo: temTextoCompleto,
+          url_texto_completo: urlUsada,
+          fonte_texto: fonteUsada,
+          data_publicacao: anoFinal ? `${anoFinal}-01-01` : null,
+          periodo_feed: "semanal",
+          data_entrada_feed: new Date().toISOString(),
+        });
+
+        const { error: insertErr } = await supabase.from("artigos").insert(insertPayload);
+
+        if (insertErr) {
+          resultado.erros.push(`DB error for ${pmid}: ${insertErr.message}`);
+          continue;
+        }
+        resultado.artigos_inseridos++;
+        console.log(`[✓] ${temaParaProcessar} — PMID ${pmid} salvo`);
+      } catch (e) {
+        resultado.erros.push(`Error ${pmid}: ${(e as Error).message}`);
+      }
+    }
+  } catch (e) {
+    resultado.erros.push(`Theme failed: ${(e as Error).message}`);
   }
 
-  console.log(`[FIM] Processados: ${resultado.processados}, Pulados: ${resultado.pulados}, Erros: ${resultado.erros.length}`);
+  // Salvar último tema processado
+  await salvarUltimoTema(supabase, temaParaProcessar);
+
+  console.log(`[FIM] Tema: ${temaParaProcessar}, Inseridos: ${resultado.artigos_inseridos}, Pulados: ${resultado.pulados}, Erros: ${resultado.erros.length}`);
 
   return new Response(JSON.stringify(resultado), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
