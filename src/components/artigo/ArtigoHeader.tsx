@@ -81,6 +81,7 @@ const ArtigoHeader = ({ artigo }: Props) => {
           }
           return null;
         })()}
+        <span>·</span>
         <span>{artigo.citacoes} citações</span>
         {getLinkArtigo(artigo) && (
           <>
