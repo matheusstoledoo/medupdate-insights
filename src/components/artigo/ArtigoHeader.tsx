@@ -62,6 +62,25 @@ const ArtigoHeader = ({ artigo }: Props) => {
         <span className="uppercase tracking-wider">{artigo.journal}</span>
         <span>·</span>
         <span>{artigo.ano}</span>
+        {(() => {
+          const ano = artigo.ano;
+          const dataEntrada = artigo.data_entrada_feed;
+          if (ano && ano < 2026 && dataEntrada) {
+            const entrada = new Date(dataEntrada);
+            const diffDias = Math.floor((new Date().getTime() - entrada.getTime()) / 86400000);
+            if (diffDias <= 30) {
+              return (
+                <>
+                  <span>·</span>
+                  <span className="text-[10px] text-muted-foreground bg-[hsl(var(--bg-tertiary))] rounded px-1.5 py-0.5">
+                    Indexado recentemente
+                  </span>
+                </>
+              );
+            }
+          }
+          return null;
+        })()}
         <span>·</span>
         <span>{artigo.citacoes} citações</span>
         {getLinkArtigo(artigo) && (

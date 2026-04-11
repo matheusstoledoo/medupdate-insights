@@ -14,7 +14,7 @@ const TEMAS_LISTA = [
   "Valvopatias",
   "Cardiologia Preventiva",
   "Miocardiopatias",
-  "Cardio-oncologia",
+  "Cardiologia Esportiva",
   "Imagem Cardíaca",
   "Dispositivos / Eletrof.",
   "Reabilitação Cardíaca",
@@ -36,8 +36,8 @@ const TEMAS_QUERIES: Record<string, string> = {
     '(cardiovascular diseases[MeSH Terms]) AND (primary prevention[tiab] OR secondary prevention[tiab] OR cardiovascular risk[tiab] OR lipid-lowering[tiab] OR statins[tiab])',
   "Miocardiopatias":
     '(cardiomyopathies[MeSH Terms] OR hypertrophic cardiomyopathy[MeSH Terms] OR dilated cardiomyopathy[tiab] OR cardiac amyloidosis[tiab] OR ATTR[tiab])',
-  "Cardio-oncologia":
-    '(cardiotoxicity[tiab] OR cardio-oncology[tiab] OR cardiovascular complications[tiab]) AND (antineoplastic agents[MeSH Terms] OR immunotherapy[MeSH Terms] OR cancer[tiab])',
+  "Cardiologia Esportiva":
+    '(sports cardiology[tiab] OR athlete heart[tiab] OR exercise cardiology[tiab] OR "sudden cardiac death"[MeSH Terms] AND athlete[tiab] OR cardiac screening[tiab] AND sport[tiab])',
   "Imagem Cardíaca":
     '(echocardiography[MeSH Terms] OR cardiac magnetic resonance[tiab] OR cardiac MRI[tiab] OR cardiac CT[tiab] OR coronary computed tomography[tiab])',
   "Dispositivos / Eletrof.":
