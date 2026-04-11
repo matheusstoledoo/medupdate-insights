@@ -91,6 +91,15 @@ const formatarBadgeData = (dataStr: string | null) => {
   return { label: data.toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" }), className: "bg-surface-tertiary text-muted-foreground" };
 };
 
+const isIndexadoRecentemente = (artigo: any): boolean => {
+  if (!artigo.ano || artigo.ano >= 2026) return false;
+  if (!artigo.data_entrada_feed) return false;
+  const entrada = new Date(artigo.data_entrada_feed);
+  const hoje = new Date();
+  const diffDias = Math.floor((hoje.getTime() - entrada.getTime()) / 86400000);
+  return diffDias <= 30;
+};
+
 const Feed = () => {
   const { user } = useAuth();
   const { streakAtual } = useStreak();
@@ -461,6 +470,11 @@ const Feed = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 font-mono text-[0.72rem] text-muted-foreground">
                                   <span>{artigo.ano}</span>
+                                  {isIndexadoRecentemente(artigo) && (
+                                    <span className="text-[10px] text-muted-foreground bg-surface-tertiary rounded px-1.5 py-0.5">
+                                      Indexado recentemente
+                                    </span>
+                                  )}
                                   {getLinkArtigo(artigo) && (
                                     <>
                                       <span>·</span>
@@ -534,6 +548,11 @@ const ArticleList = ({ artigos }: { artigos: any[] }) => (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-mono text-[0.72rem] text-muted-foreground">
               <span>{artigo.ano}</span>
+              {isIndexadoRecentemente(artigo) && (
+                <span className="text-[10px] text-muted-foreground bg-surface-tertiary rounded px-1.5 py-0.5">
+                  Indexado recentemente
+                </span>
+              )}
               <span>·</span>
               <span>{artigo.citacoes} citações</span>
               {getLinkArtigo(artigo) && (
