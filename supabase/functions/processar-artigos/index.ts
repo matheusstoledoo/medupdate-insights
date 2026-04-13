@@ -445,8 +445,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Fetch edats em batch ──────────────────────────────────
-    const edats = await fetchEdats(pmids);
+    // edats são buscadas individualmente por PMID no loop abaixo
 
     // ── Processar cada PMID (max 3 análises Claude por chamada)
     let analysesRun = 0;
@@ -465,6 +464,29 @@ Deno.serve(async (req) => {
         if (existing) {
           resultado.pulados++;
           continue;
+        }
+
+        // ── eSummary para extrair edat ──────────────────────
+        let edatValue: string | null = null;
+        try {
+          const esummaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${pmid}&retmode=json&email=medupdate@app.com`;
+          const esummaryRes = await fetch(esummaryUrl, { signal: AbortSignal.timeout(10000) });
+          if (esummaryRes.ok) {
+            const esummaryData = await esummaryRes.json();
+            const summary = esummaryData?.result?.[pmid];
+            const edatRaw = summary?.epubdate || summary?.pubdate || null;
+            if (edatRaw) {
+              try {
+                const d = new Date(edatRaw);
+                if (!isNaN(d.getTime())) {
+                  edatValue = d.toISOString().split("T")[0];
+                }
+              } catch { /* ignore parse error */ }
+            }
+            console.log(`[eSummary] PMID ${pmid}: epubdate=${summary?.epubdate}, pubdate=${summary?.pubdate}, edat=${edatValue}`);
+          }
+        } catch (e) {
+          console.log(`[eSummary] Erro PMID ${pmid}: ${e}`);
         }
 
         // ── EFetch XML para metadados + abstract ──────────────
@@ -544,8 +566,6 @@ Deno.serve(async (req) => {
 
         const anoFinal = parsed.ano || ano || new Date().getFullYear();
         const linkFinal = urlUsada || (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
-        const edatValue = edats[pmid] || null;
-
         // ── Insert com novos campos ───────────────────────────
         const insertPayload = buildInsertPayload(parsed, {
           especialidade_tema: temaParaProcessar,
