@@ -6,6 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// ── Temas e queries ─────────────────────────────────────────
+
 const TEMAS_LISTA = [
   "Insuficiência Cardíaca",
   "Arritmias / FA",
@@ -52,7 +54,9 @@ const JOURNALS_ALTO_IMPACTO =
   '("N Engl J Med"[Journal] OR "Lancet"[Journal] OR "JAMA"[Journal] OR "Circulation"[Journal] OR "J Am Coll Cardiol"[Journal] OR "Eur Heart J"[Journal] OR "JAMA Cardiol"[Journal] OR "Heart"[Journal] OR "BMJ"[Journal])';
 
 const FILTROS_BASE =
-  ` AND (randomized controlled trial[pt] OR meta-analysis[pt] OR systematic review[pt] OR practice guideline[pt]) AND ("last 30 days"[PDat]) AND (humans[MeSH Terms]) AND ${JOURNALS_ALTO_IMPACTO}`;
+  ` AND (randomized controlled trial[pt] OR meta-analysis[pt] OR systematic review[pt] OR practice guideline[pt]) AND (humans[MeSH Terms]) AND ${JOURNALS_ALTO_IMPACTO}`;
+
+// ── Prompt Claude ───────────────────────────────────────────
 
 function buildPrompt(textoParaAnalise: string, fonteUsada: string, temTextoCompleto: boolean): string {
   return `Você é um cardiologista especialista em medicina baseada em evidências. Você recebeu o ${temTextoCompleto ? `texto completo (fonte: ${fonteUsada})` : 'ABSTRACT apenas'} de um artigo científico e deve gerar uma análise estruturada, robusta e clinicamente útil, suficiente para que um médico possa entender e interpretar o estudo sem precisar ler o original.
@@ -173,6 +177,8 @@ Texto do artigo (fonte: ${fonteUsada}, ${textoParaAnalise.length} chars):
 ${textoParaAnalise}`;
 }
 
+// ── Insert payload builder ──────────────────────────────────
+
 function buildInsertPayload(parsed: Record<string, any>, extras: Record<string, any>) {
   const analiseCompleta: Record<string, any> = {};
   if (parsed.metodologia) analiseCompleta.metodologia = parsed.metodologia;
@@ -221,6 +227,8 @@ function buildInsertPayload(parsed: Record<string, any>, extras: Record<string, 
     ...extras,
   };
 }
+
+// ── PMC full-text retrieval ─────────────────────────────────
 
 async function tentarPMC(pmid: string): Promise<{
   texto: string; fonte: string; completo: boolean; url: string | null;
@@ -280,6 +288,8 @@ async function tentarPMC(pmid: string): Promise<{
   return null;
 }
 
+// ── Rotação de temas ────────────────────────────────────────
+
 async function getProximoTema(supabase: any): Promise<{ tema: string; proximoTema: string }> {
   const { data } = await supabase
     .from("controle_processamento")
@@ -311,6 +321,54 @@ async function salvarUltimoTema(supabase: any, tema: string) {
     );
 }
 
+// ── Extrair edat do eSummary ────────────────────────────────
+
+async function fetchEdats(pmids: string[]): Promise<Record<string, string | null>> {
+  const result: Record<string, string | null> = {};
+  if (pmids.length === 0) return result;
+
+  try {
+    const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${pmids.join(",")}&retmode=json&email=medupdate@app.com`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return result;
+    const data = await res.json();
+
+    for (const pmid of pmids) {
+      const doc = data?.result?.[pmid];
+      if (!doc) { result[pmid] = null; continue; }
+
+      // epubdate tem formato "2025/01/15" ou "2025 Jan 15" etc.
+      const raw = doc.epubdate || doc.pubdate || "";
+      const dateMatch = raw.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+      if (dateMatch) {
+        const [, y, m, d] = dateMatch;
+        result[pmid] = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      } else {
+        // Try "2025 Jan 15" format
+        const altMatch = raw.match(/(\d{4})\s+(\w+)\s+(\d{1,2})/);
+        if (altMatch) {
+          const months: Record<string, string> = {
+            Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+            Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
+          };
+          const [, y, mon, d] = altMatch;
+          const m = months[mon] || "01";
+          result[pmid] = `${y}-${m}-${d.padStart(2, "0")}`;
+        } else {
+          // Just year
+          const yearMatch = raw.match(/(\d{4})/);
+          result[pmid] = yearMatch ? `${yearMatch[1]}-01-01` : null;
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`[eSummary] Erro: ${e}`);
+  }
+  return result;
+}
+
+// ── Main handler ────────────────────────────────────────────
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -329,6 +387,7 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
+  // ── Determinar tema ───────────────────────────────────────
   let temaParaProcessar: string;
   let proximoTema: string;
 
@@ -357,17 +416,19 @@ Deno.serve(async (req) => {
     pulados: 0,
   };
 
+  // ── Busca PubMed com edat + reldate=2 (últimas 48h) ──────
   const queryTema = TEMAS_QUERIES[temaParaProcessar];
   const fullQuery = queryTema + FILTROS_BASE;
-  const maxArticles = 3;
+  const maxArticles = 20;
 
-  console.log(`[TEMA] ${temaParaProcessar} — retmax=${maxArticles}`);
+  console.log(`[TEMA] ${temaParaProcessar} — retmax=${maxArticles}, datetype=edat, reldate=2`);
 
   try {
-    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(fullQuery)}&retmax=${maxArticles}&retmode=json&sort=date`;
+    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(fullQuery)}&datetype=edat&reldate=2&retmax=${maxArticles}&retmode=json&usehistory=y&email=medupdate@app.com`;
     const searchRes = await fetch(searchUrl, { signal: AbortSignal.timeout(15000) });
     if (!searchRes.ok) {
       resultado.erros.push(`PubMed search failed: ${searchRes.status}`);
+      await salvarUltimoTema(supabase, temaParaProcessar);
       return new Response(JSON.stringify(resultado), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -375,12 +436,27 @@ Deno.serve(async (req) => {
     const searchData = await searchRes.json();
     const pmids: string[] = searchData?.esearchresult?.idlist ?? [];
 
+    console.log(`[TEMA] ${temaParaProcessar}: ${pmids.length} PMIDs encontrados`);
+
     if (pmids.length === 0) {
-      console.log(`[TEMA] ${temaParaProcessar}: nenhum PMID`);
+      await salvarUltimoTema(supabase, temaParaProcessar);
+      return new Response(JSON.stringify(resultado), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
+    // ── Fetch edats em batch ──────────────────────────────────
+    const edats = await fetchEdats(pmids);
+
+    // ── Processar cada PMID (max 3 análises Claude por chamada)
+    let analysesRun = 0;
+    const MAX_ANALYSES = 3;
+
     for (const pmid of pmids) {
+      if (analysesRun >= MAX_ANALYSES) break;
+
       try {
+        // Deduplicação por PMID
         const { data: existing } = await supabase
           .from("artigos")
           .select("id")
@@ -391,6 +467,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // ── EFetch XML para metadados + abstract ──────────────
         const efetchResp = await fetch(
           `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml&email=medupdate@app.com`,
           { signal: AbortSignal.timeout(15000) }
@@ -420,6 +497,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // ── PMC full-text ─────────────────────────────────────
         const pmcResult = await tentarPMC(pmid);
         const temTextoCompleto = !!pmcResult;
         const textoParaAnalise = pmcResult ? pmcResult.texto : abstractText;
@@ -428,6 +506,7 @@ Deno.serve(async (req) => {
 
         console.log(`[${temaParaProcessar}] PMID ${pmid}: fonte=${fonteUsada}, chars=${textoParaAnalise.length}`);
 
+        // ── Análise Claude ────────────────────────────────────
         const promptAnalise = buildPrompt(textoParaAnalise, fonteUsada, temTextoCompleto);
 
         const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -465,7 +544,9 @@ Deno.serve(async (req) => {
 
         const anoFinal = parsed.ano || ano || new Date().getFullYear();
         const linkFinal = urlUsada || (doi ? `https://doi.org/${doi}` : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`);
+        const edatValue = edats[pmid] || null;
 
+        // ── Insert com novos campos ───────────────────────────
         const insertPayload = buildInsertPayload(parsed, {
           especialidade_tema: temaParaProcessar,
           pmid,
@@ -475,8 +556,11 @@ Deno.serve(async (req) => {
           tem_texto_completo: temTextoCompleto,
           url_texto_completo: urlUsada,
           fonte_texto: fonteUsada,
-          data_publicacao: anoFinal ? `${anoFinal}-01-01` : null,
-          periodo_feed: "semanal",
+          data_publicacao: edatValue || (anoFinal ? `${anoFinal}-01-01` : null),
+          // ── NOVOS CAMPOS ──
+          edat: edatValue,
+          data_entrada_sistema: new Date().toISOString(),
+          periodo_feed: "hoje",
           data_entrada_feed: new Date().toISOString(),
         });
 
@@ -487,7 +571,8 @@ Deno.serve(async (req) => {
           continue;
         }
         resultado.artigos_inseridos++;
-        console.log(`[✓] ${temaParaProcessar} — PMID ${pmid} salvo`);
+        analysesRun++;
+        console.log(`[✓] ${temaParaProcessar} — PMID ${pmid} salvo (edat=${edatValue}, periodo=hoje)`);
       } catch (e) {
         resultado.erros.push(`Error ${pmid}: ${(e as Error).message}`);
       }

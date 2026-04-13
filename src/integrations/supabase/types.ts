@@ -32,7 +32,12 @@ export type Database = {
           contexto_vs_anterior: string | null
           created_at: string | null
           data_entrada_feed: string | null
+          data_entrada_sistema: string | null
           data_publicacao: string | null
+          data_transicao_anual: string | null
+          data_transicao_mes: string | null
+          data_transicao_semana: string | null
+          edat: string | null
           especialidade: string | null
           especialidade_tema: string | null
           feedback_quiz: string | null
@@ -83,7 +88,12 @@ export type Database = {
           contexto_vs_anterior?: string | null
           created_at?: string | null
           data_entrada_feed?: string | null
+          data_entrada_sistema?: string | null
           data_publicacao?: string | null
+          data_transicao_anual?: string | null
+          data_transicao_mes?: string | null
+          data_transicao_semana?: string | null
+          edat?: string | null
           especialidade?: string | null
           especialidade_tema?: string | null
           feedback_quiz?: string | null
@@ -134,7 +144,12 @@ export type Database = {
           contexto_vs_anterior?: string | null
           created_at?: string | null
           data_entrada_feed?: string | null
+          data_entrada_sistema?: string | null
           data_publicacao?: string | null
+          data_transicao_anual?: string | null
+          data_transicao_mes?: string | null
+          data_transicao_semana?: string | null
+          edat?: string | null
           especialidade?: string | null
           especialidade_tema?: string | null
           feedback_quiz?: string | null
@@ -509,6 +524,9 @@ export type Database = {
     Functions: {
       atualizar_streak: { Args: { p_usuario_id: string }; Returns: undefined }
       mover_artigos_entre_periodos: { Args: never; Returns: undefined }
+      transicionar_hoje_para_semana: { Args: never; Returns: undefined }
+      transicionar_mes_para_anual: { Args: never; Returns: undefined }
+      transicionar_semana_para_mes: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
