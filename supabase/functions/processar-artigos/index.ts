@@ -445,8 +445,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Fetch edats em batch ──────────────────────────────────
-    const edats = await fetchEdats(pmids);
+    // edats são buscadas individualmente por PMID no loop abaixo
 
     // ── Processar cada PMID (max 3 análises Claude por chamada)
     let analysesRun = 0;
